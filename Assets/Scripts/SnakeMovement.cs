@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(LineRenderer))]
@@ -24,7 +25,7 @@ public class SnakeMovement : MonoBehaviour
     [HideInInspector] public int PlayerID;
     [HideInInspector] public int PlayerCount;
     private Powerup[] _playerPowerups;
-    private Array _allPowerups;
+    private Powerup[] _allPowerups;
     private Vector3 _primaryPowerupPosition;
     private Vector3 _secondaryPowerupPosition;
     private Vector2 _initialVelocity;
@@ -58,7 +59,14 @@ public class SnakeMovement : MonoBehaviour
             _playerPowerups[i] = Powerup.None;
         }
 
-        _allPowerups = typeof(Powerup).GetEnumValues(); // Makes an array of all Powerups
+        _allPowerups = (Powerup[])typeof(Powerup).GetEnumValues(); // Makes an array of all Powerups
+        _allPowerups = _allPowerups.Skip(1).ToArray(); // Makes an array of all Powerups
+        string test = "";
+        for (int i = 0; i < _allPowerups.Length; i++)
+        {
+            test = test + ", " + _allPowerups[i].ToString();
+        }
+        Debug.Log(test);
 
         _snakePositions = new List<Vector3>();
         _moveCooldownTimeSpan = TimeSpan.FromSeconds(_moveCooldown);
@@ -204,8 +212,7 @@ public class SnakeMovement : MonoBehaviour
             powerupGameObjects[i].SetActive(powerups[i] != Powerup.None);
 
             int indexOfPowerup = Array.IndexOf(_allPowerups, powerups[i]); // gets the index of the powerup (essentially an ID)
-            powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup + 1]; // gets the sprite corresponding to that ID
         }
     }
 
@@ -307,16 +314,17 @@ public class SnakeMovement : MonoBehaviour
 
 public enum Powerup
 {
-    None,         /* Basically null */
-    Magnet,       /* Increases pickup range */
-    Speed,        /* Player go brrrr */
-    CloneGrenade /* NPC clones get shot into random directions */
-    //FreeMove,     /* Player no longer abides by snake movement laws */
-    //Freeze,       /* Nearby enemy players freeze */
-    //LongTail,     /* Body doesn't get destroyed */
-    //Confusion,    /* Enemy player's controls are inverted */
-    //FarView,      /* Player view gets expanded */
-    //Teleport,     /* Teleport to nearby player (auto body reset) */
-    //Blackout,     /* All enemy screens are deactivated  */
-    //SelfKill      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
+    None,          /* Basically null */
+    Magnet,        /* Increases pickup range */
+    Speed,         /* Player go brrrr */
+    CloneGrenade   /* NPC clones get shot into random directions */
+    //FreeMove,      /* Player no longer abides by snake movement laws */
+    //Freeze,        /* Nearby enemy players freeze */
+    //LongTail,      /* Body doesn't get destroyed */
+    //Confusion,     /* Enemy player's controls are inverted */
+    //FarView,       /* Player view gets expanded */
+    //Teleport,      /* Teleport to nearby player (auto body reset) */
+    //Blackout,      /* All enemy screens are deactivated  */
+    //SelfKill,      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
+    //Hax            /* Draws a line towards all coins and players */
 }
