@@ -225,9 +225,8 @@ MonoBehaviour:
   - {fileID: 5628915497842688172}
   _powerupSprites:
   - {fileID: 21300000, guid: 973ee4b60b78d194495e5ea92ac7851c, type: 3}
-  - {fileID: 21300000, guid: 9d5c85078b4ec0d46975cf5430106370, type: 3}
-  - {fileID: 21300000, guid: 5da99d12742303c4eab8f3586494cd40, type: 3}
-  - {fileID: 21300000, guid: 0cf3a8f5e62df6f4ca3fa2f438108119, type: 3}
+  - {fileID: 21300000, guid: 65302e43416f95547b66eeea157c6449, type: 3}
+  - {fileID: 21300000, guid: e2865e32cdfae98488ea0b50590eeac8, type: 3}
   _playerLayer: 9
   _pickupRadius: 0.7
   _keybinds: 11010000140100001201000013010000310100002f010000
