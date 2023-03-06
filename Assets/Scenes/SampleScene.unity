@@ -263,7 +263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 929f3ade8bb4e22469df7da6d9fd077e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerCount: 2
+  _playerCount: 3
   _defaultSnakeLength: 3
   _defaultMoveSpeed: 5
   _pointsToGrow: 7
