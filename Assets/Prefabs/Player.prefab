@@ -230,6 +230,7 @@ MonoBehaviour:
   _playerLayer: 9
   _pickupRadius: 0.7
   _keybinds: 11010000140100001201000013010000310100002f010000
+  Powerups: []
   InitialVelocityOverride: {x: 1, y: 0}
   PlayerID: 1
   PlayerCount: 2
