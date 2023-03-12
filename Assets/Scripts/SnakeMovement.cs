@@ -98,7 +98,8 @@ public class SnakeMovement : MonoBehaviour
     private void UsePowerup(string powerup, uint slot)
     {
         _timeSincePowerup = 0f;
-        UpdateCoins((uint) -(10 - (slot * 5)));
+        int coinSubtraction = (10 - ((int)slot * 5));
+        UpdateCoins(-coinSubtraction);
         SetPowerup(slot);
 
         switch (powerup)
@@ -250,11 +251,11 @@ public class SnakeMovement : MonoBehaviour
         if (Input.GetKeyDown(_keybinds[1]) && _movement.x == 0) { ChangePlayerDirection(Vector2.left); }
         if (Input.GetKeyDown(_keybinds[2]) && _movement.y == 0) { ChangePlayerDirection(Vector2.down); }
         if (Input.GetKeyDown(_keybinds[3]) && _movement.x == 0) { ChangePlayerDirection(Vector2.right); }
-        if (Input.GetKeyDown(_keybinds[4]) && _movement.x == 0)
+        if (Input.GetKeyDown(_keybinds[4]) && _movement.x == 0 && _timeSincePowerup > 2 && _coins > 5)
         {
             UsePowerup(_playerPowerups[1], _secondarySlot);
         }
-        if ((Input.GetKeyDown(_keybinds[5]) || Input.GetKeyDown(_keybinds[6])) && _movement.x == 0)
+        if ((Input.GetKeyDown(_keybinds[5]) || Input.GetKeyDown(_keybinds[6])) && _movement.x == 0 && _timeSincePowerup > 2 && _coins > 10)
         {
             UsePowerup(_playerPowerups[0], _primarySlot);
         }
@@ -325,7 +326,7 @@ public class SnakeMovement : MonoBehaviour
                         break;
 
                     case "Coin":
-                        if (_coins < 20) UpdateCoins(_coins + 1);
+                        if (_coins < 20) UpdateCoins(1);
 
                         if (_coins >= 5)  _powerupGameObjects[_secondarySlot].gameObject.SetActive(true);
                         else              _powerupGameObjects[_secondarySlot].gameObject.SetActive(false);
@@ -355,9 +356,15 @@ public class SnakeMovement : MonoBehaviour
         }
     }
 
-    private void UpdateCoins(uint newValue)
+    private void UpdateCoins(int newValue, bool set = false)
     {
-        _coins = newValue;
+        if (set) _coins = (uint)newValue;
+        else
+        {
+            int newCoins = (int)_coins + newValue;
+            if (newCoins < 0) _coins = 0;
+            else _coins = (uint)newCoins;
+        }
         _coinsText.text = _coins.ToString();
     }
 
