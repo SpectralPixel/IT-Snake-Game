@@ -88,14 +88,14 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        int coinsToSpawn = 300 + 50 * _snakeCount;
+        int coinsToSpawn = 100 + 50 * _snakeCount;
         for (int i = 0; i < coinsToSpawn; i++)
         {
             SpawnNewPoint();
         }
 
         InvokeRepeating("SpawnNewPoint", 0f, _pointRepopulationRate);
-        InvokeRepeating("SpawnNewCoin", 10f, _coinRepopulationRate);
+        InvokeRepeating("SpawnNewCoin", 0f, _coinRepopulationRate / 10);
     }
 
     private void SpawnNewPoint()
@@ -112,6 +112,7 @@ public class GameManager : MonoBehaviour
 
         CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
         circleCollider.radius = 1f;
+        circleCollider.isTrigger = true;
         point.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
         float minimumPositionX = -15f - 5f * _snakeCount + 0.5f;
@@ -135,6 +136,7 @@ public class GameManager : MonoBehaviour
 
         CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
         circleCollider.radius = 0.9f;
+        circleCollider.isTrigger = true;
         point.transform.localScale = new Vector3(0.23f, 0.23f, 0.23f);
 
         float minimumPositionX = -15f - 5f * _snakeCount + 0.5f;

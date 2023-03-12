@@ -21,6 +21,7 @@ public class SnakeMovement : MonoBehaviour
     [SerializeField] private float _pickupRadius;
     public KeyCode[] _keybinds;
     public string[] Powerups;
+    public string[] WeakPowerups;
 
     [HideInInspector] public Vector2 InitialVelocityOverride;
     [HideInInspector] public int PlayerID;
@@ -37,6 +38,7 @@ public class SnakeMovement : MonoBehaviour
     private float _moveSpeed;
     private uint _pointsToGrow;
     private uint _coins;
+    private float _timeSincePowerup;
 
     private uint _primarySlot = 0;
     private uint _secondarySlot = 1;
@@ -57,20 +59,25 @@ public class SnakeMovement : MonoBehaviour
 
         SetPlayerColor();
 
-        Powerups = new string[4]
+        Powerups = new string[3]
         {
             "None",          /* Basically null */
-            "Magnet",        /* Increases pickup range */
             "Speed",         /* Player go brrrr */
             "CloneGrenade"   /* NPC clones get shot into random directions */
             //"FreeMove",      /* Player no longer abides by snake movement laws */
             //"Freeze",        /* Nearby enemy players freeze */
             //"LongTail",      /* Body doesn't get destroyed */
             //"Confusion",     /* Enemy player's controls are inverted */
-            //"FarView",       /* Player view gets expanded */
-            //"Teleport",      /* Teleport to nearby player (auto body reset) */
             //"Blackout",      /* All enemy screens are deactivated  */
             //"SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
+        };
+        
+        WeakPowerups = new string[2]
+        {
+            "None",          /* Basically null */
+            "Magnet",        /* Increases pickup range */
+            //"FarView",       /* Player view gets expanded */
+            //"Teleport",      /* Teleport to nearby player (auto body reset) */
             //"TailReset",     /* Resets tail and cures debuffs */
             //"Hax"            /* Draws a line towards all coins and players */
         };
@@ -79,10 +86,50 @@ public class SnakeMovement : MonoBehaviour
         SetPowerup(_primarySlot);
         SetPowerup(_secondarySlot);
 
+        _powerupGameObjects[_primarySlot].gameObject.SetActive(false);
+        _powerupGameObjects[_secondarySlot].gameObject.SetActive(false);
+
         _snakePositions = new List<Vector3>();
         _moveCooldownTimeSpan = TimeSpan.FromSeconds(_moveCooldown);
 
         InvokeRepeating("CreateBody", 0f, 0.2f);
+    }
+
+    private void UsePowerup(string powerup, uint slot)
+    {
+        _timeSincePowerup = 0f;
+        UpdateCoins((uint) -(10 - (slot * 5)));
+        SetPowerup(slot);
+
+        switch (powerup)
+        {
+            case "Magnet":
+                break;
+            case "Speed":
+                break;
+            case "CloneGrenade":
+                break;
+            case "FreeMove":
+                break;
+            case "Freeze":
+                break;
+            case "LongTail":
+                break;
+            case "Confusion":
+                break;
+            case "FarView":
+                break;
+            case "Teleport":
+                break;
+            case "Blackout":
+                break;
+            case "SelfKill":
+                break;
+            case "TailReset":
+                break;
+            case "Hax":
+                break;
+        }
     }
 
     private void GetManagerVariables()
@@ -203,6 +250,14 @@ public class SnakeMovement : MonoBehaviour
         if (Input.GetKeyDown(_keybinds[1]) && _movement.x == 0) { ChangePlayerDirection(Vector2.left); }
         if (Input.GetKeyDown(_keybinds[2]) && _movement.y == 0) { ChangePlayerDirection(Vector2.down); }
         if (Input.GetKeyDown(_keybinds[3]) && _movement.x == 0) { ChangePlayerDirection(Vector2.right); }
+        if (Input.GetKeyDown(_keybinds[4]) && _movement.x == 0)
+        {
+            UsePowerup(_playerPowerups[1], _secondarySlot);
+        }
+        if ((Input.GetKeyDown(_keybinds[5]) || Input.GetKeyDown(_keybinds[6])) && _movement.x == 0)
+        {
+            UsePowerup(_playerPowerups[0], _primarySlot);
+        }
 
         if (DateTime.UtcNow - _lastMove > _moveCooldownTimeSpan && _nextMove != Vector2.zero) ChangePlayerDirection(_nextMove);
 
@@ -212,6 +267,8 @@ public class SnakeMovement : MonoBehaviour
         _primaryPowerupPosition = _rigidbody.position - (_movement * 3/4);
         _secondaryPowerupPosition = _rigidbody.position - (_movement * 3/4) * 2;
         PlacePowerup(_powerupGameObjects, _playerPowerups, _primaryPowerupPosition, _secondaryPowerupPosition);
+
+        _timeSincePowerup += Time.deltaTime;
     }
     private void PlacePowerup(GameObject[] powerupGameObjects, string[] powerups, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
     {
@@ -220,16 +277,19 @@ public class SnakeMovement : MonoBehaviour
 
         for (int i = 0; i < powerupGameObjects.Length; i++)
         {
-            powerupGameObjects[i].SetActive(powerups[i] != "None");
-
-            int indexOfPowerup = Array.IndexOf(Powerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
-            powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+            if (powerupGameObjects[i].activeSelf == true)
+            {
+                int indexOfPowerup;
+                if (i == 0) indexOfPowerup = Array.IndexOf(Powerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
+                else        indexOfPowerup = Array.IndexOf(WeakPowerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
+                powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+            }
         }
     }
 
     private void SetPowerup(uint slot)
     {
-        _playerPowerups[slot] = GetRandomPowerup();
+        _playerPowerups[slot] = GetRandomPowerup(slot == 1); // if slot = 1 (weak slot) then get weak powerup)
     }
 
     private void FixedUpdate()
@@ -267,13 +327,10 @@ public class SnakeMovement : MonoBehaviour
                     case "Coin":
                         if (_coins < 20) UpdateCoins(_coins + 1);
 
-                        if (_coins >= 10 && _playerPowerups[1] == "None")
-                        {
-                            if (_playerPowerups[0] == "None") _playerPowerups[0] = GetRandomPowerup();
-                            else                              _playerPowerups[1] = GetRandomPowerup();
-
-                            UpdateCoins(0);
-                        }
+                        if (_coins >= 5)  _powerupGameObjects[_secondarySlot].gameObject.SetActive(true);
+                        else              _powerupGameObjects[_secondarySlot].gameObject.SetActive(false);
+                        if (_coins >= 10) _powerupGameObjects[_primarySlot].gameObject.SetActive(true);
+                        else              _powerupGameObjects[_primarySlot].gameObject.SetActive(false);
 
                         Destroy(collider.gameObject);
                         Debug.Log("Coin Collected");
@@ -314,9 +371,9 @@ public class SnakeMovement : MonoBehaviour
         Gizmos.DrawWireSphere(_secondaryPowerupPosition, 0.3f);
     }
 
-    private string GetRandomPowerup() // https://dirask.com/posts/C-NET-get-random-element-from-enum-X13Qrp
+    private string GetRandomPowerup(bool weak = false) // https://dirask.com/posts/C-NET-get-random-element-from-enum-X13Qrp
     {
-        // Gets a random item in the powerups list, skipping "None"
-        return Powerups[UnityEngine.Random.Range(1, Powerups.Length)];
+        if (weak) return WeakPowerups[UnityEngine.Random.Range(1, WeakPowerups.Length)];
+        return Powerups[UnityEngine.Random.Range(1, Powerups.Length)]; // Gets a random item in the powerups list, skipping "None"
     }
 }

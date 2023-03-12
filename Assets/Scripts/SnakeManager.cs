@@ -57,7 +57,7 @@ public class SnakeManager : MonoBehaviour
                 case 0:
                     snakePosition = new Vector3(0f, 1f, 0f);
                     snakeMovement.InitialVelocityOverride = new Vector2(0f, 1f);
-                    snakeMovement._keybinds = new KeyCode[] { KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.Q, KeyCode.E };
+                    snakeMovement._keybinds = new KeyCode[] { KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D, KeyCode.Q, KeyCode.E, KeyCode.E };
 
                     if (SnakeCount == 1) camera.rect = new Rect(0f, 0f, 1f, 1f);
                     if (SnakeCount == 2) camera.rect = new Rect(0f, 0f, 0.4975f, 1f);
@@ -67,7 +67,7 @@ public class SnakeManager : MonoBehaviour
                 case 1:
                     snakePosition = new Vector3(1f, 0f, 0f);
                     snakeMovement.InitialVelocityOverride = new Vector2(1f, 0f);
-                    snakeMovement._keybinds = new KeyCode[] { KeyCode.UpArrow, KeyCode.LeftArrow, KeyCode.DownArrow, KeyCode.RightArrow, KeyCode.RightControl, KeyCode.RightShift };
+                    snakeMovement._keybinds = new KeyCode[] { KeyCode.UpArrow, KeyCode.LeftArrow, KeyCode.DownArrow, KeyCode.RightArrow, KeyCode.RightControl, KeyCode.RightShift, KeyCode.RightShift };
 
                     if (SnakeCount == 2) camera.rect = new Rect(0.5025f, 0f, 0.4975f, 1f);
                     if (SnakeCount > 2) camera.rect = new Rect(0.5025f, 0f, 0.4975f, 0.495f);
@@ -76,7 +76,7 @@ public class SnakeManager : MonoBehaviour
                 case 2:
                     snakePosition = new Vector3(0f, -1f, 0f);
                     snakeMovement.InitialVelocityOverride = new Vector2(0f, -1f);
-                    snakeMovement._keybinds = new KeyCode[] { KeyCode.I, KeyCode.J, KeyCode.K, KeyCode.L, KeyCode.U, KeyCode.O };
+                    snakeMovement._keybinds = new KeyCode[] { KeyCode.I, KeyCode.J, KeyCode.K, KeyCode.L, KeyCode.U, KeyCode.O, KeyCode.O };
 
                     camera.rect = new Rect(0f, 0.505f, 0.498f, 0.495f);
                     break;
