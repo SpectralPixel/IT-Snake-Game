@@ -17,8 +17,10 @@ public class SnakeMovement : MonoBehaviour
     [SerializeField] private LayerMask _collectibleLayerMask;
     [SerializeField] private GameObject[] _powerupGameObjects;
     [SerializeField] private Sprite[] _powerupSprites;
+    [SerializeField] private Sprite[] _weakPowerupSprites;
     [SerializeField] private int _playerLayer;
     [SerializeField] private float _pickupRadius;
+    [SerializeField] private float _powerupCooldownTime;
     public KeyCode[] _keybinds;
     public string[] Powerups;
     public string[] WeakPowerups;
@@ -38,7 +40,7 @@ public class SnakeMovement : MonoBehaviour
     private float _moveSpeed;
     private uint _pointsToGrow;
     private uint _coins;
-    private float _timeSincePowerup;
+    private float _powerupRemainingTime;
 
     private uint _primarySlot = 0;
     private uint _secondarySlot = 1;
@@ -59,26 +61,26 @@ public class SnakeMovement : MonoBehaviour
 
         SetPlayerColor();
 
-        Powerups = new string[3]
+        Powerups = new string[7]
         {
             "None",          /* Basically null */
             "Speed",         /* Player go brrrr */
-            "CloneGrenade"   /* NPC clones get shot into random directions */
+            "CloneGrenade",   /* NPC clones get shot into random directions */
+            "Confusion",     /* Enemy player's controls are inverted */
+            "Blackout",      /* All enemy screens are deactivated  */
+            "SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
+            "Freeze"        /* Nearby enemy players freeze */
             //"FreeMove",      /* Player no longer abides by snake movement laws */
-            //"Freeze",        /* Nearby enemy players freeze */
             //"LongTail",      /* Body doesn't get destroyed */
-            //"Confusion",     /* Enemy player's controls are inverted */
-            //"Blackout",      /* All enemy screens are deactivated  */
-            //"SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
         };
         
-        WeakPowerups = new string[2]
+        WeakPowerups = new string[3]
         {
             "None",          /* Basically null */
             "Magnet",        /* Increases pickup range */
+            "TailReset"     /* Resets tail and cures debuffs */
             //"FarView",       /* Player view gets expanded */
-            //"Teleport",      /* Teleport to nearby player (auto body reset) */
-            //"TailReset",     /* Resets tail and cures debuffs */
+            //"Teleport"      /* Teleport to nearby player (auto body reset) */
             //"Hax"            /* Draws a line towards all coins and players */
         };
 
@@ -97,7 +99,7 @@ public class SnakeMovement : MonoBehaviour
 
     private void UsePowerup(string powerup, uint slot)
     {
-        _timeSincePowerup = 0f;
+        _powerupRemainingTime = 0f;
         int coinSubtraction = (10 - ((int)slot * 5));
         UpdateCoins(-coinSubtraction);
         SetPowerup(slot);
@@ -105,30 +107,48 @@ public class SnakeMovement : MonoBehaviour
         switch (powerup)
         {
             case "Magnet":
+                _powerupRemainingTime = 8f;
                 break;
             case "Speed":
+                _powerupRemainingTime = 6f;
                 break;
             case "CloneGrenade":
+                _powerupRemainingTime = 0f;
                 break;
             case "FreeMove":
+                _powerupRemainingTime = 8f;
                 break;
             case "Freeze":
+                _powerupRemainingTime = 5f;
                 break;
             case "LongTail":
+                _powerupRemainingTime = 8f;
                 break;
             case "Confusion":
+                _powerupRemainingTime = 6f;
                 break;
             case "FarView":
+                _powerupRemainingTime = 10f;
                 break;
             case "Teleport":
+                _powerupRemainingTime = 0f;
                 break;
             case "Blackout":
+                _powerupRemainingTime = 7f;
                 break;
             case "SelfKill":
+                _powerupRemainingTime = 6f;
                 break;
             case "TailReset":
+                _snakePositions.Clear();
+                _powerupRemainingTime = 0f;
                 break;
             case "Hax":
+                _powerupRemainingTime = 8f;
+                break;
+            default:
+                Debug.LogError("PowerupNotAssignedError");
+                _powerupRemainingTime = 0f;
                 break;
         }
     }
@@ -251,11 +271,11 @@ public class SnakeMovement : MonoBehaviour
         if (Input.GetKeyDown(_keybinds[1]) && _movement.x == 0) { ChangePlayerDirection(Vector2.left); }
         if (Input.GetKeyDown(_keybinds[2]) && _movement.y == 0) { ChangePlayerDirection(Vector2.down); }
         if (Input.GetKeyDown(_keybinds[3]) && _movement.x == 0) { ChangePlayerDirection(Vector2.right); }
-        if (Input.GetKeyDown(_keybinds[4]) && _movement.x == 0 && _timeSincePowerup > 2 && _coins > 5)
+        if (Input.GetKeyDown(_keybinds[4]) && _movement.x == 0 && _powerupRemainingTime < 0f && _coins >= 5)
         {
             UsePowerup(_playerPowerups[1], _secondarySlot);
         }
-        if ((Input.GetKeyDown(_keybinds[5]) || Input.GetKeyDown(_keybinds[6])) && _movement.x == 0 && _timeSincePowerup > 2 && _coins > 10)
+        if ((Input.GetKeyDown(_keybinds[5]) || Input.GetKeyDown(_keybinds[6])) && _movement.x == 0 && _powerupRemainingTime < 0f && _coins >= 10)
         {
             UsePowerup(_playerPowerups[0], _primarySlot);
         }
@@ -269,21 +289,33 @@ public class SnakeMovement : MonoBehaviour
         _secondaryPowerupPosition = _rigidbody.position - (_movement * 3/4) * 2;
         PlacePowerup(_powerupGameObjects, _playerPowerups, _primaryPowerupPosition, _secondaryPowerupPosition);
 
-        _timeSincePowerup += Time.deltaTime;
+        _powerupRemainingTime += Time.deltaTime;
     }
     private void PlacePowerup(GameObject[] powerupGameObjects, string[] powerups, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
     {
         powerupGameObjects[0].transform.position = primaryPowerupPosition;
         powerupGameObjects[1].transform.position = secondaryPowerupPosition;
 
+        if (_coins >= 5)  _powerupGameObjects[_secondarySlot].gameObject.SetActive(true);
+        else              _powerupGameObjects[_secondarySlot].gameObject.SetActive(false);
+        if (_coins >= 10) _powerupGameObjects[_primarySlot].gameObject.SetActive(true);
+        else              _powerupGameObjects[_primarySlot].gameObject.SetActive(false);
+
         for (int i = 0; i < powerupGameObjects.Length; i++)
         {
             if (powerupGameObjects[i].activeSelf == true)
             {
                 int indexOfPowerup;
-                if (i == 0) indexOfPowerup = Array.IndexOf(Powerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
-                else        indexOfPowerup = Array.IndexOf(WeakPowerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
-                powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+                if (i == 0)
+                {
+                    indexOfPowerup = Array.IndexOf(Powerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
+                    powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+                }
+
+                else {
+                    indexOfPowerup = Array.IndexOf(WeakPowerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
+                    powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _weakPowerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+                }
             }
         }
     }
@@ -327,11 +359,6 @@ public class SnakeMovement : MonoBehaviour
 
                     case "Coin":
                         if (_coins < 20) UpdateCoins(1);
-
-                        if (_coins >= 5)  _powerupGameObjects[_secondarySlot].gameObject.SetActive(true);
-                        else              _powerupGameObjects[_secondarySlot].gameObject.SetActive(false);
-                        if (_coins >= 10) _powerupGameObjects[_primarySlot].gameObject.SetActive(true);
-                        else              _powerupGameObjects[_primarySlot].gameObject.SetActive(false);
 
                         Destroy(collider.gameObject);
                         Debug.Log("Coin Collected");
