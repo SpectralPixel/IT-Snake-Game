@@ -30,6 +30,7 @@ public class SnakeMovement : MonoBehaviour
     [HideInInspector] public int PlayerCount;
 
     private string[] _playerPowerups;
+    private string _currentPowerup;
     private Vector3 _primaryPowerupPosition;
     private Vector3 _secondaryPowerupPosition;
     private Vector2 _initialVelocity;
@@ -74,14 +75,14 @@ public class SnakeMovement : MonoBehaviour
             //"LongTail",      /* Body doesn't get destroyed */
         };
         
-        WeakPowerups = new string[3]
+        WeakPowerups = new string[4]
         {
             "None",          /* Basically null */
             "Magnet",        /* Increases pickup range */
-            "TailReset"     /* Resets tail and cures debuffs */
+            "TailReset",     /* Resets tail and cures debuffs */
+            "Hax"            /* Draws a line towards all coins and players */
             //"FarView",       /* Player view gets expanded */
             //"Teleport"      /* Teleport to nearby player (auto body reset) */
-            //"Hax"            /* Draws a line towards all coins and players */
         };
 
         _playerPowerups = new string[_powerupGameObjects.Length];
@@ -100,11 +101,14 @@ public class SnakeMovement : MonoBehaviour
     private void UsePowerup(string powerup, uint slot)
     {
         _powerupRemainingTime = 0f;
+        _currentPowerup = powerup;
+
         int coinSubtraction = (10 - ((int)slot * 5));
         UpdateCoins(-coinSubtraction);
+
         SetPowerup(slot);
 
-        switch (powerup)
+        switch (_currentPowerup)
         {
             case "Magnet":
                 _powerupRemainingTime = 8f;
@@ -289,7 +293,7 @@ public class SnakeMovement : MonoBehaviour
         _secondaryPowerupPosition = _rigidbody.position - (_movement * 3/4) * 2;
         PlacePowerup(_powerupGameObjects, _playerPowerups, _primaryPowerupPosition, _secondaryPowerupPosition);
 
-        _powerupRemainingTime += Time.deltaTime;
+        _powerupRemainingTime -= Time.deltaTime;
     }
     private void PlacePowerup(GameObject[] powerupGameObjects, string[] powerups, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
     {

@@ -224,7 +224,7 @@ MonoBehaviour:
   - {fileID: 1997402923893786666}
   - {fileID: 5628915497842688172}
   _powerupSprites:
-  - {fileID: 21300000, guid: 65302e43416f95547b66eeea157c6449, type: 3}
+  - {fileID: 21300000, guid: fbddd305784d63049b607b66a232b982, type: 3}
   - {fileID: 21300000, guid: e2865e32cdfae98488ea0b50590eeac8, type: 3}
   - {fileID: 21300000, guid: e02daf51a68a0e94fb176a0e2fea6697, type: 3}
   - {fileID: 21300000, guid: 0049f5ef802624744ad9000839f54b88, type: 3}
@@ -233,6 +233,7 @@ MonoBehaviour:
   _weakPowerupSprites:
   - {fileID: 21300000, guid: 973ee4b60b78d194495e5ea92ac7851c, type: 3}
   - {fileID: 21300000, guid: e06785025f6abf042bad37da71b05757, type: 3}
+  - {fileID: 21300000, guid: 90f0d53a081a5d347b6e335029ca2bdd, type: 3}
   _playerLayer: 9
   _pickupRadius: 0.7
   _powerupCooldownTime: 1
