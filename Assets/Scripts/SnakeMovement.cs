@@ -31,6 +31,8 @@ public class SnakeMovement : MonoBehaviour
 
     private string[] _playerPowerups;
     private string _currentPowerup;
+    private string _currentWeakPowerup;
+    private Camera[] _allCams;
     private Vector3 _primaryPowerupPosition;
     private Vector3 _secondaryPowerupPosition;
     private Vector2 _initialVelocity;
@@ -42,6 +44,7 @@ public class SnakeMovement : MonoBehaviour
     private uint _pointsToGrow;
     private uint _coins;
     private float _powerupRemainingTime;
+    private float _weakPowerupRemainingTime;
 
     private uint _primarySlot = 0;
     private uint _secondarySlot = 1;
@@ -85,6 +88,8 @@ public class SnakeMovement : MonoBehaviour
             //"Teleport"      /* Teleport to nearby player (auto body reset) */
         };
 
+        _allCams = Camera.allCameras;
+
         _playerPowerups = new string[_powerupGameObjects.Length];
         SetPowerup(_primarySlot);
         SetPowerup(_secondarySlot);
@@ -100,61 +105,101 @@ public class SnakeMovement : MonoBehaviour
 
     private void UsePowerup(string powerup, uint slot)
     {
-        _powerupRemainingTime = 0f;
-        _currentPowerup = powerup;
+        if (slot == 0)
+        {
+            _currentPowerup = powerup;
+            _currentWeakPowerup = "";
+        }
+        if (slot == 1)
+        {
+            _currentPowerup = "";
+            _currentWeakPowerup = powerup;
+        }
 
         int coinSubtraction = (10 - ((int)slot * 5));
         UpdateCoins(-coinSubtraction);
 
-        SetPowerup(slot);
-
-        switch (_currentPowerup)
+        if (slot == 0)
         {
-            case "Magnet":
-                _powerupRemainingTime = 8f;
-                break;
-            case "Speed":
-                _powerupRemainingTime = 6f;
-                break;
-            case "CloneGrenade":
-                _powerupRemainingTime = 0f;
-                break;
-            case "FreeMove":
-                _powerupRemainingTime = 8f;
-                break;
-            case "Freeze":
-                _powerupRemainingTime = 5f;
-                break;
-            case "LongTail":
-                _powerupRemainingTime = 8f;
-                break;
-            case "Confusion":
-                _powerupRemainingTime = 6f;
-                break;
-            case "FarView":
-                _powerupRemainingTime = 10f;
-                break;
-            case "Teleport":
-                _powerupRemainingTime = 0f;
-                break;
-            case "Blackout":
-                _powerupRemainingTime = 7f;
-                break;
-            case "SelfKill":
-                _powerupRemainingTime = 6f;
-                break;
-            case "TailReset":
-                _snakePositions.Clear();
-                _powerupRemainingTime = 0f;
-                break;
-            case "Hax":
-                _powerupRemainingTime = 8f;
-                break;
-            default:
-                Debug.LogError("PowerupNotAssignedError");
-                _powerupRemainingTime = 0f;
-                break;
+            switch (_currentPowerup)
+            {
+                case "Speed": // just multiply speed
+                    _moveSpeed *= 2;
+                    _powerupRemainingTime = 6f;
+                    break;
+                case "CloneGrenade": // creates new clones, no idea how to implement yet might need to rework snake logic first
+                    _powerupRemainingTime = 0f;
+                    break;
+                case "FreeMove": // if statement at input
+                    _powerupRemainingTime = 8f;
+                    break;
+                case "Freeze": // just freeze nearby players and tail removal
+                    _powerupRemainingTime = 5f;
+                    break;
+                case "LongTail": // make it so end of the snake doesnt get removed; no code needed here
+                    _powerupRemainingTime = 8f;
+                    break;
+                case "Confusion": // get nearby players and invert controls
+                    _powerupRemainingTime = 6f;
+                    break;
+                case "Blackout": // deactivate all other cameras
+                    Camera activatorCam = gameObject.GetComponentInChildren<Camera>();
+                    for (int i = 0; i < _allCams.Length; i++)
+                    {
+                        if (_allCams[i] != activatorCam)
+                        {
+                            _allCams[i].gameObject.SetActive(false);
+                        }
+                    }
+                    _powerupRemainingTime = 7f;
+                    break;
+                case "SelfKill": // rework collision system to allow self collisions (possibly split head and body objects)
+                    _powerupRemainingTime = 6f;
+                    break;
+                default:
+                    Debug.LogError("PowerupNotAssignedError");
+                    _powerupRemainingTime = 0f;
+                    break;
+            }
         }
+        if (slot == 1)
+        {
+            switch (_currentWeakPowerup)
+            {
+                case "Magnet": // Increase pickup range
+                    _weakPowerupRemainingTime = 8f;
+                    break;
+                case "TailReset": // Remove all tailpositions
+                    _snakePositions.Clear();
+                    _weakPowerupRemainingTime = 0f;
+                    break;
+                case "Hax": // draw lines to all coins and players
+                    _weakPowerupRemainingTime = 8f;
+                    break;
+                case "FarView": // move cam back
+                    _weakPowerupRemainingTime = 10f;
+                    break;
+                case "Teleport": // get distances to all players (pythag) and teleport to furthest one
+                    _weakPowerupRemainingTime = 0f;
+                    break;
+                default:
+                    Debug.LogError("PowerupNotAssignedError");
+                    _powerupRemainingTime = 0f;
+                    break;
+            }
+        }
+    }
+
+    private void EndPowerup(uint slot)
+    {
+        _moveSpeed = SnakeManager.MoveSpeed;
+
+        for (int i = 0; i < _allCams.Length; i++)
+        {
+            _allCams[i].gameObject.SetActive(true);
+        }
+
+        SetPowerup(slot);
     }
 
     private void GetManagerVariables()
@@ -293,7 +338,10 @@ public class SnakeMovement : MonoBehaviour
         _secondaryPowerupPosition = _rigidbody.position - (_movement * 3/4) * 2;
         PlacePowerup(_powerupGameObjects, _playerPowerups, _primaryPowerupPosition, _secondaryPowerupPosition);
 
+        if (_powerupRemainingTime < 0f && _currentPowerup != "") EndPowerup(_primarySlot);
+        if (_weakPowerupRemainingTime < 0f && _currentWeakPowerup != "") EndPowerup(_secondarySlot);
         _powerupRemainingTime -= Time.deltaTime;
+        _weakPowerupRemainingTime -= Time.deltaTime;
     }
     private void PlacePowerup(GameObject[] powerupGameObjects, string[] powerups, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
     {
