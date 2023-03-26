@@ -236,7 +236,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 90f0d53a081a5d347b6e335029ca2bdd, type: 3}
   _playerLayer: 9
   _pickupRadius: 0.7
-  _powerupCooldownTime: 1
   _keybinds: 11010000140100001201000013010000310100002f0100002f010000
   Powerups: []
   WeakPowerups: []
