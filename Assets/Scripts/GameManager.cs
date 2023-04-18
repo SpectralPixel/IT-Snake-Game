@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
         }
 
         InvokeRepeating("SpawnNewPoint", 0f, _pointRepopulationRate);
-        InvokeRepeating("SpawnNewCoin", 0f, _coinRepopulationRate / 10);
+        InvokeRepeating("SpawnNewCoin", 10f, _coinRepopulationRate / 10);
     }
 
     private void SpawnNewPoint()
