@@ -266,7 +266,24 @@ MonoBehaviour:
   _playerCount: 2
   _defaultSnakeLength: 3
   _defaultMoveSpeed: 5
-  _pointsToGrow: 7
+  _pointsToGrow: 4
+  _moveCooldown: 0.25
+  _defaultPickupRadius: 5
+  _collectibleLayerMask:
+    serializedVersion: 2
+    m_Bits: 1024
+  _playerLayer: 9
+  _powerupSprites:
+  - {fileID: 21300000, guid: fbddd305784d63049b607b66a232b982, type: 3}
+  - {fileID: 21300000, guid: e2865e32cdfae98488ea0b50590eeac8, type: 3}
+  - {fileID: 21300000, guid: e02daf51a68a0e94fb176a0e2fea6697, type: 3}
+  - {fileID: 21300000, guid: 0049f5ef802624744ad9000839f54b88, type: 3}
+  - {fileID: 21300000, guid: d316fb9a902bc464b87ba5ad37dd9d3e, type: 3}
+  - {fileID: 21300000, guid: 1bea03a873de5fc40a0e44565afcbe9b, type: 3}
+  _weakPowerupSprites:
+  - {fileID: 21300000, guid: 973ee4b60b78d194495e5ea92ac7851c, type: 3}
+  - {fileID: 21300000, guid: e06785025f6abf042bad37da71b05757, type: 3}
+  - {fileID: 21300000, guid: 90f0d53a081a5d347b6e335029ca2bdd, type: 3}
   _snakePrefab: {fileID: 4722129490895198030, guid: a6eef049f584c49428ca706c9adf66ac, type: 3}
 --- !u!1 &1082557648
 GameObject:
@@ -513,8 +530,8 @@ MonoBehaviour:
   _collectibleParent: {fileID: 1968615431}
   _pointSprite: {fileID: 21300000, guid: d7b96567f02db704186f289b226b226e, type: 3}
   _coinSprite: {fileID: 21300000, guid: 39ab149e1ece35f4a91e9c95ea758961, type: 3}
-  _pointRepopulationRate: 10
-  _coinRepopulationRate: 1
+  _pointRepopulationRate: 20
+  _coinRepopulationRate: 0.1
 --- !u!1 &1968615430
 GameObject:
   m_ObjectHideFlags: 0

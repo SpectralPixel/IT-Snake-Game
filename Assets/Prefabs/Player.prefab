@@ -168,7 +168,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4722129490895198029}
+  - component: {fileID: 4522234840455012591}
   - component: {fileID: 4722129490895198031}
+  - component: {fileID: 4243936674609704434}
+  - component: {fileID: 7136297404177381154}
   - component: {fileID: 4722129490895198028}
   - component: {fileID: 4722129490895198026}
   - component: {fileID: 4722129490895198027}
@@ -200,6 +203,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4522234840455012591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722129490895198030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcb183749daa2334599d458afe1bcb2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerID: 0
+  PlayerCount: 0
+  Coins: 0
+  PickupRadius: 0
 --- !u!114 &4722129490895198031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,37 +231,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9289331cdbd7c9b47aed2c3d96c4d8aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rigidbody: {fileID: 4722129490895198026}
-  _edgeCollider: {fileID: 4722129490895198024}
-  _lineRenderer: {fileID: 4722129490895198027}
-  _spriteRenderer: {fileID: 4722129490895198028}
-  _coinsText: {fileID: 7588865440131437148}
-  _collectibleLayerMask:
-    serializedVersion: 2
-    m_Bits: 1024
+  SpawnVelocity: {x: 0, y: 0}
+  Movement: {x: 0, y: 0}
+  MoveSpeed: 0
+  _moveKeys: 
+--- !u!114 &4243936674609704434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722129490895198030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f25ba0610fdd4a810528055a8d7a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SnakePositions: []
+  PointsToGrow: 0
+  SnakeLength: 0
+--- !u!114 &7136297404177381154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722129490895198030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfe08fa84ad45284eb84caac8c1cd335, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   _powerupGameObjects:
   - {fileID: 1997402923893786666}
   - {fileID: 5628915497842688172}
-  _powerupSprites:
-  - {fileID: 21300000, guid: fbddd305784d63049b607b66a232b982, type: 3}
-  - {fileID: 21300000, guid: e2865e32cdfae98488ea0b50590eeac8, type: 3}
-  - {fileID: 21300000, guid: e02daf51a68a0e94fb176a0e2fea6697, type: 3}
-  - {fileID: 21300000, guid: 0049f5ef802624744ad9000839f54b88, type: 3}
-  - {fileID: 21300000, guid: d316fb9a902bc464b87ba5ad37dd9d3e, type: 3}
-  - {fileID: 21300000, guid: 1bea03a873de5fc40a0e44565afcbe9b, type: 3}
-  _weakPowerupSprites:
-  - {fileID: 21300000, guid: 973ee4b60b78d194495e5ea92ac7851c, type: 3}
-  - {fileID: 21300000, guid: e06785025f6abf042bad37da71b05757, type: 3}
-  - {fileID: 21300000, guid: 90f0d53a081a5d347b6e335029ca2bdd, type: 3}
-  _playerLayer: 9
-  _pickupRadius: 0.7
-  _keybinds: 11010000140100001201000013010000310100002f0100002f010000
+  MainPowerupKey: 0
+  MainPowerupAlt: 0
+  WeakPowerupKey: 0
   Powerups: []
   WeakPowerups: []
-  InitialVelocityOverride: {x: 1, y: 0}
-  PlayerID: 1
-  PlayerCount: 2
-  _moveCooldown: 0.2
+  _mainSlot: 0
+  _weakSlot: 1
 --- !u!212 &4722129490895198028
 SpriteRenderer:
   m_ObjectHideFlags: 0
