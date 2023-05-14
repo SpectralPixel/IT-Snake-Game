@@ -18,10 +18,10 @@ TagManager:
   - 
   - Player
   - Collectible
-  - 
-  - 
-  - 
-  - 
+  - PlayerA
+  - PlayerB
+  - PlayerC
+  - PlayerD
   - 
   - 
   - 
@@ -42,4 +42,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 1394043291
     locked: 0

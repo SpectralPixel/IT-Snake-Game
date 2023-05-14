@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using Cinemachine;
 
 public class Snake : MonoBehaviour
 {
@@ -11,8 +12,8 @@ public class Snake : MonoBehaviour
     [HideInInspector] public int PlayerID;
     [HideInInspector] public int PlayerCount;
 
-    public uint Coins;
-    public float PickupRadius;
+    [HideInInspector] public uint Coins;
+    [HideInInspector] public float PickupRadius;
 
     private TextMeshPro _coinText;
     private LayerMask _collectibleLayerMask;
@@ -28,11 +29,12 @@ public class Snake : MonoBehaviour
         _coinText = GetComponentInChildren<TextMeshPro>();
 
         _collectibleLayerMask = SnakeManager.CollectibleLayerMask;
-        PickupRadius = SnakeManager.PickupRadius;
         _playerLayer = SnakeManager.PlayerLayer;
+
+        Respawn();
     }
 
-    private void Respawn()
+    public void Respawn()
     {
         _snakeBody.SnakePositions.Clear();
 
@@ -67,6 +69,18 @@ public class Snake : MonoBehaviour
 
         PickupRadius = SnakeManager.PickupRadius;
 
+        Camera cam = GetComponentInChildren<Camera>();
+        cam.cullingMask &= ~(1 << cam.gameObject.layer); // TURN OFF THIS LAYER     http://answers.unity.com/answers/353137/view.html
+        cam.gameObject.layer += PlayerID;
+        cam.cullingMask |= 1 << (cam.gameObject.layer); // TURN ON THIS LAYER
+
+        CinemachineVirtualCamera vCam = GetComponentInChildren<CinemachineVirtualCamera>();
+        vCam.m_Lens.OrthographicSize = SnakeManager.CameraSize;
+        vCam.gameObject.layer = cam.gameObject.layer;
+
+        CinemachineConfiner2D cmConfiner = GetComponentInChildren<CinemachineConfiner2D>();
+        cmConfiner.m_BoundingShape2D = GameObject.Find("Camera Bounds").GetComponent<PolygonCollider2D>();
+
         _snakeBody.SnakeLength = SnakeManager.DefaultSnakeLength;
 
         _snakeMovement.MoveSpeed = SnakeManager.MoveSpeed;
@@ -95,7 +109,7 @@ public class Snake : MonoBehaviour
                         break;
 
                     case "Coin":
-                        if (Coins < 20) UpdateCoins(1);
+                        if (Coins < 100) UpdateCoins(1);
 
                         Destroy(collider.gameObject);
                         Debug.Log("Coin Collected");

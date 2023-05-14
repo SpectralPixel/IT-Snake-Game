@@ -4,25 +4,30 @@ public class SnakeManager : MonoBehaviour
 {
     public static SnakeManager Instance;
 
-    public static int SnakeCount;
+    public static GameObject[] Snakes;
+
+    public static int SnakeCount = 2;
     public static uint DefaultSnakeLength;
     public static float MoveSpeed;
     public static uint PointsToGrow;
     public static float MoveCooldown;
     public static float PickupRadius;
+    public static float CameraSize;
     public static LayerMask CollectibleLayerMask;
     public static int PlayerLayer;
     public static Sprite[] PowerupSprites;
     public static Sprite[] WeakPowerupSprites;
 
-    [SerializeField] private int _playerCount;
     [SerializeField] private uint _defaultSnakeLength;
     [SerializeField] private float _defaultMoveSpeed;
     [SerializeField] uint _pointsToGrow;
     [SerializeField] private float _moveCooldown;
     [SerializeField] private float _defaultPickupRadius;
+    [SerializeField] private float _cameraSize;
+    [Space]
     [SerializeField] private LayerMask _collectibleLayerMask;
     [SerializeField] private int _playerLayer;
+    [Space]
     [SerializeField] private Sprite[] _powerupSprites;
     [SerializeField] private Sprite[] _weakPowerupSprites;
 
@@ -30,10 +35,18 @@ public class SnakeManager : MonoBehaviour
 
     private void Awake()
     {
-        SnakeCount = _playerCount;
+        DontDestroyOnLoad(this.gameObject);
+
+        Instance = this;
+    }
+
+    public void GameStart(int playerCount)
+    {
+        SnakeCount = playerCount;
         DefaultSnakeLength = _defaultSnakeLength;
         PointsToGrow = _pointsToGrow;
         PickupRadius = _defaultPickupRadius;
+        CameraSize = _cameraSize;
 
         MoveSpeed = _defaultMoveSpeed;
         MoveCooldown = _moveCooldown;
@@ -43,10 +56,9 @@ public class SnakeManager : MonoBehaviour
 
         PowerupSprites = _powerupSprites;
         WeakPowerupSprites = _weakPowerupSprites;
-    }
 
-    private void Start()
-    {
+        Snakes = new GameObject[SnakeCount];
+
         for (int i = 0; i < SnakeCount; i++)
         {
             GameObject snake = _snakePrefab;
@@ -56,15 +68,13 @@ public class SnakeManager : MonoBehaviour
             SnakeHand snakeHand = snake.GetComponent<SnakeHand>();
 
             snakeScript.PlayerID = i;
-            snakeScript.PlayerCount = _playerCount;
+            snakeScript.PlayerCount = SnakeCount;
 
             Camera camera = snake.GetComponentInChildren<Camera>();
             Vector3 snakePosition = Vector3.zero;
             switch (i)
             {
                 case 0:
-                    snakePosition = new Vector3(0f, 1f, 0f);
-                    snakeMovement.SpawnVelocity = new Vector2(0f, 1f);
                     snakeMovement._moveKeys = new KeyCode[]
                     {
                         KeyCode.W,
@@ -78,13 +88,11 @@ public class SnakeManager : MonoBehaviour
                     snakeHand.WeakPowerupKey = KeyCode.Q;
 
                     if (SnakeCount == 1) camera.rect = new Rect(0f, 0f, 1f, 1f);
-                    if (SnakeCount == 2) camera.rect = new Rect(0f, 0f, 0.4975f, 1f);
-                    if (SnakeCount > 2) camera.rect = new Rect(0f, 0f, 0.4975f, 0.495f);
+                    if (SnakeCount == 2) camera.rect = new Rect(0f, 0f, 0.5f, 1f);
+                    if (SnakeCount > 2) camera.rect = new Rect(0f, 0f, 0.5f, 0.5f);
                     break;
 
                 case 1:
-                    snakePosition = new Vector3(1f, 0f, 0f);
-                    snakeMovement.SpawnVelocity = new Vector2(1f, 0f);
                     snakeMovement._moveKeys = new KeyCode[]
                     {
                         KeyCode.UpArrow,
@@ -97,13 +105,11 @@ public class SnakeManager : MonoBehaviour
                     snakeHand.MainPowerupAlt = KeyCode.RightAlt;
                     snakeHand.WeakPowerupKey = KeyCode.RightShift;
 
-                    if (SnakeCount == 2) camera.rect = new Rect(0.5025f, 0f, 0.4975f, 1f);
-                    if (SnakeCount > 2) camera.rect = new Rect(0.5025f, 0f, 0.4975f, 0.495f);
+                    if (SnakeCount == 2) camera.rect = new Rect(0.5f, 0f, 0.5f, 1f);
+                    if (SnakeCount > 2) camera.rect = new Rect(0.5f, 0f, 0.5f, 0.5f);
                     break;
 
                 case 2:
-                    snakePosition = new Vector3(0f, -1f, 0f);
-                    snakeMovement.SpawnVelocity = new Vector2(0f, -1f);
                     snakeMovement._moveKeys = new KeyCode[]
                     {
                         KeyCode.I,
@@ -116,12 +122,10 @@ public class SnakeManager : MonoBehaviour
                     snakeHand.MainPowerupAlt = KeyCode.O;
                     snakeHand.WeakPowerupKey = KeyCode.U;
 
-                    camera.rect = new Rect(0f, 0.505f, 0.498f, 0.495f);
+                    camera.rect = new Rect(0f, 0.5f, 0.5f, 0.5f);
                     break;
 
                 case 3:
-                    snakePosition = new Vector3(-1f, 0f, 0f);
-                    snakeMovement.SpawnVelocity = new Vector2(-1f, 0f);
                     snakeMovement._moveKeys = new KeyCode[]
                     {
                         KeyCode.T,
@@ -134,12 +138,17 @@ public class SnakeManager : MonoBehaviour
                     snakeHand.MainPowerupAlt = KeyCode.Z;
                     snakeHand.WeakPowerupKey = KeyCode.R;
 
-                    camera.rect = new Rect(0.5025f, 0.505f, 0.4975f, 0.495f);
+                    camera.rect = new Rect(0.5f, 0.5f, 0.5f, 0.5f);
                     break;
             }
 
-            Instantiate(snake, snakePosition, Quaternion.identity);
+            Snakes[i] = Instantiate(snake, snakePosition, Quaternion.identity);
         }
+    }
+
+    public void SliderChanged(int playerCount)
+    {
+        SnakeCount = playerCount;
     }
 
 }

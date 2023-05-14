@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Tilemaps;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -21,6 +22,10 @@ public class SnakeMovement : MonoBehaviour
     private DateTime _lastMove;
     private Vector2 _nextMove;
 
+    public bool FreeMove = false;
+    public bool Frozen = false;
+    public bool Confused = false;
+
 
     private void Start()
     {
@@ -39,34 +44,79 @@ public class SnakeMovement : MonoBehaviour
 
     private void ChangePlayerDirection(Vector2 movement)
     {
-        if (DateTime.UtcNow - _lastMove > _moveCooldownTimeSpan)
+        if (!FreeMove)
         {
-            Movement = movement;
-            _nextMove = Vector2.zero;
+            if (DateTime.UtcNow - _lastMove > _moveCooldownTimeSpan)
+            {
+                if (!Confused) Movement = movement;
+                else Movement = -movement;
+                _nextMove = Vector2.zero;
 
-            _snakeBody.CreateBody();
+                _snakeBody.CreateBody();
 
-            _lastMove = DateTime.UtcNow;
+                _lastMove = DateTime.UtcNow;
+            }
+            else
+            {
+                _nextMove = movement;
+            }
         }
         else
         {
-            _nextMove = movement;
+            if (!Confused) Movement = movement;
+            else Movement = -movement;
+            _snakeBody.CreateBody();
         }
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(_moveKeys[0]) && Movement.y == 0) { ChangePlayerDirection(Vector2.up); }
-        if (Input.GetKeyDown(_moveKeys[1]) && Movement.x == 0) { ChangePlayerDirection(Vector2.left); }
-        if (Input.GetKeyDown(_moveKeys[2]) && Movement.y == 0) { ChangePlayerDirection(Vector2.down); }
-        if (Input.GetKeyDown(_moveKeys[3]) && Movement.x == 0) { ChangePlayerDirection(Vector2.right); }
+        if (!FreeMove)
+        {
+            if (Input.GetKeyDown(_moveKeys[0]) && Movement.y == 0) { ChangePlayerDirection(Vector2.up); }
+            if (Input.GetKeyDown(_moveKeys[1]) && Movement.x == 0) { ChangePlayerDirection(Vector2.left); }
+            if (Input.GetKeyDown(_moveKeys[2]) && Movement.y == 0) { ChangePlayerDirection(Vector2.down); }
+            if (Input.GetKeyDown(_moveKeys[3]) && Movement.x == 0) { ChangePlayerDirection(Vector2.right); }
+        }
+        else
+        {
+            if (Input.GetKeyDown(_moveKeys[0])) { ChangePlayerDirection(Vector2.up); }
+            if (Input.GetKeyDown(_moveKeys[1])) { ChangePlayerDirection(Vector2.left); }
+            if (Input.GetKeyDown(_moveKeys[2])) { ChangePlayerDirection(Vector2.down); }
+            if (Input.GetKeyDown(_moveKeys[3])) { ChangePlayerDirection(Vector2.right); }
+        }
 
         if (DateTime.UtcNow - _lastMove > _moveCooldownTimeSpan && _nextMove != Vector2.zero) ChangePlayerDirection(_nextMove);
     }
 
     private void FixedUpdate()
     {
-        _rigidbody.MovePosition(_rigidbody.position + Movement * MoveSpeed * Time.fixedDeltaTime);
+        if (!Frozen) _rigidbody.MovePosition(_rigidbody.position + Movement * MoveSpeed * Time.fixedDeltaTime);
+
+        if (transform.position.x < GameManager.Instance.MinimumPositionX)
+        {
+            Debug.Log("X too negative");
+            _snake.Respawn();
+            transform.position = new Vector3(GameManager.Instance.MinimumPositionX + 1, transform.position.y, 0f);
+        }
+        if (transform.position.x > GameManager.Instance.MaximumPositionX)
+        {
+            Debug.Log("X too positive");
+            _snake.Respawn();
+            transform.position = new Vector3(GameManager.Instance.MaximumPositionX - 1, transform.position.y, 0f);
+        }
+        if (transform.position.y < GameManager.Instance.MinimumPositionY)
+        {
+            Debug.Log("Y too negative");
+            _snake.Respawn();
+            transform.position = new Vector3(transform.position.x, GameManager.Instance.MinimumPositionY + 1, 0f);
+        }
+        if (transform.position.y > GameManager.Instance.MaximumPositionY)
+        {
+            Debug.Log("Y too positive");
+            _snake.Respawn();
+            transform.position = new Vector3(transform.position.x, GameManager.Instance.MaximumPositionY - 1, 0f);
+        }
     }
 
 }

@@ -1,16 +1,17 @@
 using System;
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
     public static event Action<GameState> OnGameStateChanged;
-    public Rect GameArea;
-    public GameState State;
+    [HideInInspector] public GameState State;
 
-    [SerializeField] private Sprite _wallSprite;
-    [SerializeField] private Transform _wallParent;
-    [SerializeField] private Transform _collectibleParent;
     [SerializeField] private Sprite _pointSprite;
     [SerializeField] private Sprite _coinSprite;
     [SerializeField] private float _pointRepopulationRate;
@@ -18,8 +19,15 @@ public class GameManager : MonoBehaviour
 
     private int _snakeCount;
 
+    public float MinimumPositionX;
+    public float MaximumPositionX;
+    public float MinimumPositionY;
+    public float MaximumPositionY;
+
     private void Awake()
     {
+        DontDestroyOnLoad(this.gameObject);
+
         Instance = this;
     }
 
@@ -30,10 +38,10 @@ public class GameManager : MonoBehaviour
         _pointRepopulationRate = 1 / (_pointRepopulationRate - (_pointRepopulationRate * 3/4) + (_pointRepopulationRate / 4) * _snakeCount);
         _coinRepopulationRate = 1 / (_coinRepopulationRate - (_coinRepopulationRate * 3/4) + (_coinRepopulationRate / 4) * _snakeCount);
 
-        UpdateGameState(GameState.Round);
+        StartCoroutine(UpdateGameState(GameState.Menu));
     }
 
-    public void UpdateGameState(GameState newState)
+    public IEnumerator UpdateGameState(GameState newState)
     {
         State = newState;
 
@@ -45,24 +53,33 @@ public class GameManager : MonoBehaviour
             case GameState.Menu:
                 break;
             case GameState.Round:
+                int _snakes = (int)GameObject.Find("/Canvas/Player Count").GetComponent<Slider>().value;
+                Debug.Log(_snakes);
+
+                SceneManager.LoadScene("Assets/Scenes/Game.unity");
+
+                while (SceneManager.GetActiveScene().name != "Game")
+                {
+                    yield return null;
+                }
+
                 NewRoundHandler();
+                SnakeManager.Instance.GameStart(_snakes);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
         }
 
         OnGameStateChanged?.Invoke(newState);
+
+        yield return null;
     }
 
     private void NewRoundHandler()
     {
         for (int i = 0; i < 4; i++)
         {
-            GameObject wall = new GameObject("Wall " + i, typeof(SpriteRenderer), typeof(BoxCollider2D));
-            wall.transform.parent = _wallParent;
-
-            SpriteRenderer wallRenderer = wall.GetComponent<SpriteRenderer>();
-            wallRenderer.sprite = _wallSprite;
+            GameObject wall = new GameObject("Wall " + i, typeof(BoxCollider2D));
 
             BoxCollider2D boxCollider = wall.GetComponent<BoxCollider2D>();
             boxCollider.size = new Vector2(1f, 1f);
@@ -88,6 +105,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        MinimumPositionX = -15f - 5f * _snakeCount + 0.5f;
+        MaximumPositionX = 15f + 5f * _snakeCount - 0.5f;
+        MinimumPositionY = -15f - 5f * _snakeCount + 0.5f;
+        MaximumPositionY = 15f + 5f * _snakeCount - 0.5f;
+
+        GameObject.Find("Camera Bounds").transform.localScale = new Vector3(MaximumPositionX, MaximumPositionY, 1f);
+
         int coinsToSpawn = 100 + 50 * _snakeCount;
         for (int i = 0; i < coinsToSpawn; i++)
         {
@@ -103,7 +127,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("New Point Spawned");
 
         GameObject point = new GameObject("Point", typeof(SpriteRenderer), typeof(CircleCollider2D));
-        point.transform.parent = _collectibleParent;
         point.layer = 10;
         point.tag = "Point";
 
@@ -115,11 +138,7 @@ public class GameManager : MonoBehaviour
         circleCollider.isTrigger = true;
         point.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        float minimumPositionX = -15f - 5f * _snakeCount + 0.5f;
-        float maximumPositionX = 15f + 5f * _snakeCount - 0.5f;
-        float minimumPositionY = 15f + 5f * _snakeCount - 0.5f;
-        float maximumPositionY = -15f - 5f * _snakeCount + 0.5f;
-        point.transform.position = GetRandomPositionInBounds(minimumPositionX, maximumPositionX, minimumPositionY, maximumPositionY);
+        point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
     }
 
     private void SpawnNewCoin()
@@ -127,7 +146,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("New Coin Spawned");
 
         GameObject point = new GameObject("Coin", typeof(SpriteRenderer), typeof(CircleCollider2D));
-        point.transform.parent = _collectibleParent;
+
         point.layer = 10;
         point.tag = "Coin";
 
@@ -139,11 +158,7 @@ public class GameManager : MonoBehaviour
         circleCollider.isTrigger = true;
         point.transform.localScale = new Vector3(0.23f, 0.23f, 0.23f);
 
-        float minimumPositionX = -15f - 5f * _snakeCount + 0.5f;
-        float maximumPositionX = 15f + 5f * _snakeCount - 0.5f;
-        float minimumPositionY = 15f + 5f * _snakeCount - 0.5f;
-        float maximumPositionY = -15f - 5f * _snakeCount + 0.5f;
-        point.transform.position = GetRandomPositionInBounds(minimumPositionX, maximumPositionX, minimumPositionY, maximumPositionY);
+        point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
     }
 
     private Vector2 GetRandomPositionInBounds(float minimumX, float maximumX, float minimumY, float maximumY)
@@ -151,6 +166,12 @@ public class GameManager : MonoBehaviour
         Vector2 newPoint = new Vector2(UnityEngine.Random.Range(minimumX, maximumX), UnityEngine.Random.Range(minimumY, maximumY));
         return newPoint;
     }
+
+    public void StartGameButton()
+    { 
+        StartCoroutine(UpdateGameState(GameState.Round)); 
+    }
+
 }
 
 public enum GameState

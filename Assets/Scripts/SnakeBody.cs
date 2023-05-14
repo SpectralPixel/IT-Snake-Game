@@ -19,6 +19,8 @@ public class SnakeBody : MonoBehaviour
     [HideInInspector] public uint PointsToGrow;
     [HideInInspector] public uint SnakeLength;
 
+    public bool InfiniteLength = false;
+
     private void Start()
     {
         _snake = GetComponent<Snake>();
@@ -57,7 +59,7 @@ public class SnakeBody : MonoBehaviour
     {
         SnakePositions.Add(new Vector3(transform.position.x, transform.position.y, 0f));
 
-        while (SnakePositions.Count > SnakeLength)
+        while (SnakePositions.Count > SnakeLength && !InfiniteLength)
         {
             SnakePositions.RemoveAt(0);
         }

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using System.Linq;
+using static Powerup;
+using Cinemachine;
 
 public class SnakeHand : MonoBehaviour
 {
@@ -21,16 +23,10 @@ public class SnakeHand : MonoBehaviour
     private Sprite[] _powerupSprites;
     private Sprite[] _weakPowerupSprites;
 
-    private string[] _playerHand;
+    private Powerup[] _playerHand;
 
     private Vector3 _primaryPowerupPosition;
     private Vector3 _secondaryPowerupPosition;
-
-    private string _currentPowerup;
-    private string _currentWeakPowerup;
-
-    private float _powerupRemainingTime;
-    private float _weakPowerupRemainingTime;
 
     [HideInInspector] public uint _mainSlot = 0;
     [HideInInspector] public uint _weakSlot = 1;
@@ -47,15 +43,15 @@ public class SnakeHand : MonoBehaviour
         _powerupSprites = SnakeManager.PowerupSprites;
         _weakPowerupSprites = SnakeManager.WeakPowerupSprites;
 
-        Powerups = new string[7]
+        Powerups = new string[]
         {
             "None",          /* Basically null */
             "Speed",         /* Player go brrrr */
-            "CloneGrenade",   /* NPC clones get shot into random directions */
+            //"CloneGrenade",   /* NPC clones get shot into random directions */
             "Confusion",     /* Enemy player's controls are inverted */
             "Blackout",      /* All enemy screens are deactivated  */
-            "SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
-            "Freeze"        /* Nearby enemy players freeze */
+            //"SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
+            "Freeze"            /* Nearby enemy players freeze */
             //"FreeMove",      /* Player no longer abides by snake movement laws */
             //"LongTail",      /* Body doesn't get destroyed */
         };
@@ -65,12 +61,12 @@ public class SnakeHand : MonoBehaviour
             "None",          /* Basically null */
             "Magnet",        /* Increases pickup range */
             "TailReset",     /* Resets tail and cures debuffs */
-            "Hax"            /* Draws a line towards all coins and players */
-            //"FarView",       /* Player view gets expanded */
+            //"Hax"            /* Draws a line towards all coins and players */
+            "FarView",       /* Player view gets expanded */
             //"Teleport"      /* Teleport to nearby player (auto body reset) */
         };
 
-        _playerHand = new string[_powerupGameObjects.Length];
+        _playerHand = new Powerup[_powerupGameObjects.Length];
         SetPowerup(_mainSlot);
         SetPowerup(_weakSlot);
 
@@ -81,123 +77,24 @@ public class SnakeHand : MonoBehaviour
         _allCams = Camera.allCameras;
     }
 
-    private void PlacePowerup(GameObject[] powerupGameObjects, string[] powerups, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
-    {
-        powerupGameObjects[0].transform.position = primaryPowerupPosition;
-        powerupGameObjects[1].transform.position = secondaryPowerupPosition;
-
-        if (_snake.Coins >= 5)  _powerupGameObjects[_weakSlot].gameObject.SetActive(true);
-        else              _powerupGameObjects[_weakSlot].gameObject.SetActive(false);
-        if (_snake.Coins >= 10) _powerupGameObjects[_mainSlot].gameObject.SetActive(true);
-        else              _powerupGameObjects[_mainSlot].gameObject.SetActive(false);
-
-        for (int i = 0; i < powerupGameObjects.Length; i++)
-        {
-            if (powerupGameObjects[i].activeSelf == true)
-            {
-                int indexOfPowerup;
-                if (i == 0)
-                {
-                    indexOfPowerup = Array.IndexOf(Powerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
-                    powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
-                }
-
-                else {
-                    indexOfPowerup = Array.IndexOf(WeakPowerups.Skip(1).ToArray(), powerups[i]); // gets the index of the powerup (essentially an ID)
-                    powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _weakPowerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
-                }
-            }
-        }
-    }
-
     private void SetPowerup(uint slot)
     {
         _playerHand[slot] = GetRandomPowerup(slot == 1); // if slot = 1 (weak slot) then get weak powerup)
     }
 
-    private void UsePowerup(string powerup, uint slot)
+    private void UsePowerup(Powerup powerup, uint slot)
     {
-        if (slot == 0) _currentPowerup = powerup;
-        if (slot == 1) _currentWeakPowerup = powerup;
-
         int coinSubtraction = (10 - ((int)slot * 5));
         _snake.UpdateCoins(-coinSubtraction);
 
-        if (slot == 0)
-        {
-            switch (_currentPowerup)
-            {
-                case "Speed": // just multiply speed
-                    _snakeMovement.MoveSpeed *= 2;
-                    _powerupRemainingTime = 6f;
-                    break;
-                case "CloneGrenade": // creates new clones, no idea how to implement yet might need to rework snake logic first
-                    _powerupRemainingTime = 0f;
-                    break;
-                case "FreeMove": // if statement at input
-                    _powerupRemainingTime = 8f;
-                    break;
-                case "Freeze": // just freeze nearby players and tail removal
-                    _powerupRemainingTime = 5f;
-                    break;
-                case "LongTail": // make it so end of the snake doesnt get removed; no code needed here
-                    _powerupRemainingTime = 8f;
-                    break;
-                case "Confusion": // get nearby players and invert controls
-                    _powerupRemainingTime = 6f;
-                    break;
-                case "Blackout": // deactivate all other cameras
-                    Camera activatorCam = gameObject.GetComponentInChildren<Camera>();
-                    for (int i = 0; i < _allCams.Length; i++)
-                    {
-                        if (_allCams[i] != activatorCam)
-                        {
-                            _allCams[i].gameObject.SetActive(false);
-                        }
-                    }
-                    _powerupRemainingTime = 7f;
-                    break;
-                case "SelfKill": // rework collision system to allow self collisions (possibly split head and body objects)
-                    _powerupRemainingTime = 6f;
-                    break;
-                default:
-                    Debug.LogError("PowerupNotAssignedError");
-                    _powerupRemainingTime = 0f;
-                    break;
-            }
-        }
-        if (slot == 1)
-        {
-            switch (_currentWeakPowerup)
-            {
-                case "Magnet": // Increase pickup range
-                    _weakPowerupRemainingTime = 8f;
-                    break;
-                case "TailReset": // Remove all tailpositions
-                    _snakeBody.SnakePositions.Clear();
-                    _weakPowerupRemainingTime = 0f;
-                    break;
-                case "Hax": // draw lines to all coins and players
-                    _weakPowerupRemainingTime = 8f;
-                    break;
-                case "FarView": // move cam back
-                    _weakPowerupRemainingTime = 10f;
-                    break;
-                case "Teleport": // get distances to all players (pythag) and teleport to furthest one
-                    _weakPowerupRemainingTime = 0f;
-                    break;
-                default:
-                    Debug.LogError("PowerupNotAssignedError");
-                    _powerupRemainingTime = 0f;
-                    break;
-            }
-        }
+        powerup.StartPowerup();
     }
 
     public void EndPowerup(uint slot)
     {
+        SetPowerup(slot);
         ///////////////////////////////////////////////////// only do this if the powerup was speed!!!
-        _snakeMovement.MoveSpeed = SnakeManager.MoveSpeed;
+        /*_snakeMovement.MoveSpeed = SnakeManager.MoveSpeed;
 
         for (int i = 0; i < _allCams.Length; i++)
         {
@@ -205,21 +102,389 @@ public class SnakeHand : MonoBehaviour
         }
 
         SetPowerup(slot);
+        */
     }
 
-    private string GetRandomPowerup(bool weak = false) // https://dirask.com/posts/C-NET-get-random-element-from-enum-X13Qrp
+    private Powerup GetRandomPowerup(bool weak = false) // https://dirask.com/posts/C-NET-get-random-element-from-enum-X13Qrp
     {
-        if (weak) return WeakPowerups[UnityEngine.Random.Range(1, WeakPowerups.Length)];
-        return Powerups[UnityEngine.Random.Range(1, Powerups.Length)]; // Gets a random item in the powerups list, skipping "None"
+        string powerupName;
+        float timeLimit;
+
+        PowerupBehaviour startBehaviour;
+        PowerupBehaviour tickBehaviour;
+        PowerupBehaviour endBehaviour;
+
+        // get a random item in the powerups list, skipping "None"
+        if (weak)
+        {
+            powerupName = WeakPowerups[UnityEngine.Random.Range(1, WeakPowerups.Length)];
+            Debug.Log(powerupName.ToString() + ", " + WeakPowerups.Length.ToString());
+        }
+        else
+        {
+            powerupName = Powerups[UnityEngine.Random.Range(1, Powerups.Length)];
+            Debug.Log(powerupName.ToString() + ", " + Powerups.Length.ToString());
+        }
+
+        if (!weak)
+        {
+            switch (powerupName)
+            {
+                case "Speed": // just multiply speed
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        _snakeMovement.MoveSpeed *= 2;
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 6f;
+
+                    break;
+
+                case "CloneGrenade": // creates new clones, no idea how to implement yet might need to rework snake logic first
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 0f;
+
+                    break;
+
+                case "FreeMove": // if statement at input
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        _snakeMovement.FreeMove = true;
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate () 
+                    {
+                        _snakeMovement.FreeMove = false;
+                    };
+
+                    timeLimit = 8f;
+
+                    break;
+
+                case "Freeze": // just freeze nearby players and tail removal
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponent<SnakeMovement>().Frozen = true;
+                            }
+                        }
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponent<SnakeMovement>().Frozen = false;
+                            }
+                        }
+                    };
+
+                    timeLimit = 5f;
+
+                    break;
+
+                case "LongTail": // make it so end of the snake doesnt get removed; no code needed here
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        _snakeBody.InfiniteLength = true;
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        _snakeBody.InfiniteLength = false;
+                    };
+
+                    timeLimit = 8f;
+
+                    break;
+
+                case "Confusion": // get nearby players and invert controls
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponent<SnakeMovement>().Confused = true;
+                            }
+                        }
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponent<SnakeMovement>().Confused = false;
+                            }
+                        }
+                    };
+
+                    timeLimit = 6f;
+
+                    break;
+
+                case "Blackout": // deactivate all other cameras
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponentInChildren<Camera>().enabled = false;
+                            }
+                        }
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        for (int i = 0; i < SnakeManager.SnakeCount; i++)
+                        {
+                            if (SnakeManager.Snakes[i] != gameObject)
+                            {
+                                SnakeManager.Snakes[i].GetComponentInChildren<Camera>().enabled = true;
+                            }
+                        }
+                    };
+
+                    timeLimit = 7f;
+
+                    break;
+
+                case "SelfKill": // rework collision system to allow self collisions (possibly split head and body objects)
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 6f;
+
+                    break;
+
+                default:
+                    Debug.LogError("PowerupNotAssignedError");
+
+                    startBehaviour = delegate () { };
+                    tickBehaviour = delegate () { };
+                    endBehaviour = delegate () { };
+                    timeLimit = 0f;
+                    break;
+            }
+        }
+        else
+        {
+            switch (powerupName)
+            {
+                case "Magnet": // Increase pickup range
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        _snake.PickupRadius *= 4;
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        _snake.PickupRadius = SnakeManager.PickupRadius;
+                    };
+
+                    timeLimit = 8f;
+
+                    break;
+
+                case "TailReset": // Remove all tailpositions
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                    };
+                    _snakeBody.SnakePositions.Clear();
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 0f;
+
+                    break;
+
+                case "Hax": // draw lines to all coins and players
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 8f;
+
+                    break;
+
+                case "FarView": // move cam back
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        GetComponentInChildren<CinemachineVirtualCamera>().m_Lens.OrthographicSize *= 2;
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+                        GetComponentInChildren<CinemachineVirtualCamera>().m_Lens.OrthographicSize = SnakeManager.CameraSize;
+                    };
+
+                    timeLimit = 10f;
+
+                    break;
+
+                case "Teleport": // teleport to a random position until either there's no collider nearby or there's been 10 attempts
+
+                    startBehaviour = delegate ()
+                    {
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                    };
+
+                    tickBehaviour = delegate ()
+                    {
+
+                    };
+
+                    endBehaviour = delegate ()
+                    {
+
+                    };
+
+                    timeLimit = 0f;
+
+                    break;
+
+                default:
+                    Debug.LogError("PowerupNotAssignedError");
+                    startBehaviour = delegate () { };
+                    tickBehaviour = delegate () { };
+                    endBehaviour = delegate () { };
+                    timeLimit = 0f;
+                    break;
+            }
+        }
+
+        return new Powerup(this, weak, powerupName, timeLimit, startBehaviour, tickBehaviour, endBehaviour);
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(WeakPowerupKey) && _snakeMovement.Movement.x == 0 && _powerupRemainingTime < 0f && _snake.Coins >= 5)
+        if (Input.GetKeyDown(WeakPowerupKey) && !_playerHand[1].IsActive && _snake.Coins >= 5)
         {
             UsePowerup(_playerHand[1], _weakSlot);
         }
-        if ((Input.GetKeyDown(MainPowerupKey) || Input.GetKeyDown(MainPowerupAlt)) && _snakeMovement.Movement.x == 0 && _powerupRemainingTime < 0f && _snake.Coins >= 10)
+        if ((Input.GetKeyDown(MainPowerupKey) || Input.GetKeyDown(MainPowerupAlt)) && !_playerHand[0].IsActive && _snake.Coins >= 10)
         {
             UsePowerup(_playerHand[0], _mainSlot);
         }
@@ -236,23 +501,52 @@ public class SnakeHand : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_powerupRemainingTime <= 0f) _currentPowerup = "";
-        if (_weakPowerupRemainingTime <= 0f) _currentWeakPowerup = "";
-        if (_currentPowerup != "") EndPowerup(_mainSlot);
-        if (_currentWeakPowerup != "") EndPowerup(_weakSlot);
-        _powerupRemainingTime -= Time.fixedDeltaTime;
-        _weakPowerupRemainingTime -= Time.fixedDeltaTime;
+        _playerHand[0].UpdatePowerup(Time.fixedDeltaTime);
+        _playerHand[1].UpdatePowerup(Time.fixedDeltaTime);
     }
 
-
-
-    private void OnDrawGizmos()
+    // places them appropiately on the player
+    private void PlacePowerup(GameObject[] powerupGameObjects, Powerup[] playerHand, Vector3 primaryPowerupPosition, Vector3 secondaryPowerupPosition)
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, SnakeManager.PickupRadius);
+        powerupGameObjects[0].transform.position = primaryPowerupPosition;
+        powerupGameObjects[1].transform.position = secondaryPowerupPosition;
 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(_primaryPowerupPosition, 0.45f);
-        Gizmos.DrawWireSphere(_secondaryPowerupPosition, 0.3f);
+        if (_snake.Coins >= 5)  _powerupGameObjects[_weakSlot].gameObject.SetActive(true);
+        else              _powerupGameObjects[_weakSlot].gameObject.SetActive(false);
+        if (_snake.Coins >= 10) _powerupGameObjects[_mainSlot].gameObject.SetActive(true);
+        else              _powerupGameObjects[_mainSlot].gameObject.SetActive(false);
+
+        for (int i = 0; i < powerupGameObjects.Length; i++)
+        {
+            if (powerupGameObjects[i].activeSelf == true)
+            {
+                int indexOfPowerup;
+                if (i == 0)
+                {
+                    indexOfPowerup = Array.IndexOf(Powerups.ToArray(), playerHand[i].Name) - 1; // gets the index of the powerup (essentially an ID)
+                    try
+                    {
+                        powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _powerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+                    }
+                    catch
+                    {
+                        Debug.Log(indexOfPowerup + ", " + WeakPowerups.Length + ", " + playerHand[i]);
+                    }
+                }
+                else
+                {
+                    indexOfPowerup = Array.IndexOf(WeakPowerups.ToArray(), playerHand[i].Name) - 1; // gets the index of the powerup (essentially an ID)
+                    try
+                    {
+                        powerupGameObjects[i].GetComponent<SpriteRenderer>().sprite = _weakPowerupSprites[indexOfPowerup]; // gets the sprite corresponding to that ID
+                    }
+                    catch
+                    {
+                        Debug.Log(indexOfPowerup + ", " + Powerups.Length + ", " + playerHand[i]);
+                    }
+                }
+            }
+        }
     }
+
 }
