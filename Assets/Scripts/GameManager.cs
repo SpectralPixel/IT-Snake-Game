@@ -19,10 +19,15 @@ public class GameManager : MonoBehaviour
 
     private int _snakeCount;
 
-    public float MinimumPositionX;
-    public float MaximumPositionX;
-    public float MinimumPositionY;
-    public float MaximumPositionY;
+    [HideInInspector] public float MinimumPositionX;
+    [HideInInspector] public float MaximumPositionX;
+    [HideInInspector] public float MinimumPositionY;
+    [HideInInspector] public float MaximumPositionY;
+
+    [HideInInspector] public int PointCount = 0;
+    [HideInInspector] public int CoinCount = 0;
+    [SerializeField] private int _maxPointCount;
+    [SerializeField] private int _maxCoinCount;
 
     private void Awake()
     {
@@ -51,6 +56,7 @@ public class GameManager : MonoBehaviour
         switch (newState)
         {
             case GameState.Menu:
+                if (SceneManager.GetActiveScene().name != "Main Menu") SceneManager.LoadScene("Assets/Scenes/Main Menu.unity");
                 break;
             case GameState.Round:
                 int _snakes = (int)GameObject.Find("/Canvas/Player Count").GetComponent<Slider>().value;
@@ -120,45 +126,53 @@ public class GameManager : MonoBehaviour
 
         InvokeRepeating("SpawnNewPoint", 0f, _pointRepopulationRate);
         InvokeRepeating("SpawnNewCoin", 10f, _coinRepopulationRate / 10);
+
+        GameObject.Find("Foreground").GetComponent<GameTimer>().StartRound();
     }
 
     private void SpawnNewPoint()
     {
-        Debug.Log("New Point Spawned");
+        if (PointCount < _maxPointCount)
+        {
+            PointCount++;
 
-        GameObject point = new GameObject("Point", typeof(SpriteRenderer), typeof(CircleCollider2D));
-        point.layer = 10;
-        point.tag = "Point";
+            GameObject point = new GameObject("Point", typeof(SpriteRenderer), typeof(CircleCollider2D));
+            point.layer = 10;
+            point.tag = "Point";
 
-        SpriteRenderer pointRenderer = point.GetComponent<SpriteRenderer>();
-        pointRenderer.sprite = _pointSprite;
+            SpriteRenderer pointRenderer = point.GetComponent<SpriteRenderer>();
+            pointRenderer.sprite = _pointSprite;
 
-        CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
-        circleCollider.radius = 1f;
-        circleCollider.isTrigger = true;
-        point.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
+            circleCollider.radius = 1f;
+            circleCollider.isTrigger = true;
+            point.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
+            point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
+        }
     }
 
     private void SpawnNewCoin()
     {
-        Debug.Log("New Coin Spawned");
+        if (CoinCount < _maxCoinCount)
+        {
+            CoinCount++;
 
-        GameObject point = new GameObject("Coin", typeof(SpriteRenderer), typeof(CircleCollider2D));
+            GameObject point = new GameObject("Coin", typeof(SpriteRenderer), typeof(CircleCollider2D));
 
-        point.layer = 10;
-        point.tag = "Coin";
+            point.layer = 10;
+            point.tag = "Coin";
 
-        SpriteRenderer pointRenderer = point.GetComponent<SpriteRenderer>();
-        pointRenderer.sprite = _coinSprite;
+            SpriteRenderer pointRenderer = point.GetComponent<SpriteRenderer>();
+            pointRenderer.sprite = _coinSprite;
 
-        CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
-        circleCollider.radius = 0.9f;
-        circleCollider.isTrigger = true;
-        point.transform.localScale = new Vector3(0.23f, 0.23f, 0.23f);
+            CircleCollider2D circleCollider = point.GetComponent<CircleCollider2D>();
+            circleCollider.radius = 0.9f;
+            circleCollider.isTrigger = true;
+            point.transform.localScale = new Vector3(0.23f, 0.23f, 0.23f);
 
-        point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
+            point.transform.position = GetRandomPositionInBounds(MinimumPositionX, MaximumPositionX, MinimumPositionY, MaximumPositionY);
+        }
     }
 
     private Vector2 GetRandomPositionInBounds(float minimumX, float maximumX, float minimumY, float maximumY)

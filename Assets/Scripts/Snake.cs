@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using Cinemachine;
+using UnityEngine.UIElements;
 
 public class Snake : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class Snake : MonoBehaviour
     private int _playerLayer;
     private float GrowthProgress;
 
+    [HideInInspector] public int _pointsCollected;
+    [HideInInspector] public int _coinsCollected;
+    [HideInInspector] public int _snakeKills;
+    [HideInInspector] public int _powerupsUsed;
+
     private void Start()
     {
         _snakeMovement = GetComponent<SnakeMovement>();
@@ -36,6 +42,11 @@ public class Snake : MonoBehaviour
 
     public void Respawn()
     {
+        Camera cam = GetComponentInChildren<Camera>();
+        cam.cullingMask &= ~(1 << cam.gameObject.layer); // TURN OFF THIS LAYER     http://answers.unity.com/answers/353137/view.html
+        cam.gameObject.layer += PlayerID;
+        cam.cullingMask |= 1 << (cam.gameObject.layer); // TURN ON THIS LAYER
+        
         _snakeBody.SnakePositions.Clear();
 
         _snakeHand.EndPowerup(_snakeHand._mainSlot);
@@ -69,10 +80,7 @@ public class Snake : MonoBehaviour
 
         PickupRadius = SnakeManager.PickupRadius;
 
-        Camera cam = GetComponentInChildren<Camera>();
-        cam.cullingMask &= ~(1 << cam.gameObject.layer); // TURN OFF THIS LAYER     http://answers.unity.com/answers/353137/view.html
-        cam.gameObject.layer += PlayerID;
-        cam.cullingMask |= 1 << (cam.gameObject.layer); // TURN ON THIS LAYER
+        GetComponentInChildren<Canvas>().enabled = false;
 
         CinemachineVirtualCamera vCam = GetComponentInChildren<CinemachineVirtualCamera>();
         vCam.m_Lens.OrthographicSize = SnakeManager.CameraSize;
@@ -100,19 +108,23 @@ public class Snake : MonoBehaviour
                 switch (collider.gameObject.tag)
                 {
                     case "Point":
+                        _pointsCollected++;
+
                         GrowthProgress += 1f / _snakeBody.PointsToGrow;
                         if (GrowthProgress >= 1f) { GrowthProgress = 0f; _snakeBody.SnakeLength++; }
 
                         Destroy(collider.gameObject);
-                        Debug.Log("Point Collected");
+                        GameManager.Instance.PointCount--;
 
                         break;
 
                     case "Coin":
-                        if (Coins < 100) UpdateCoins(1);
+                        _coinsCollected++;
+
+                        UpdateCoins(1);
 
                         Destroy(collider.gameObject);
-                        Debug.Log("Coin Collected");
+                        GameManager.Instance.CoinCount--;
 
                         break;
                 }
@@ -121,29 +133,31 @@ public class Snake : MonoBehaviour
         }
     }
 
-    public void UpdateCoins(int newValue, bool set = false)
+    public void UpdateCoins(int newValue)
     {
-        if (set) Coins = (uint)newValue;
-        else
-        {
-            int newCoins = (int)Coins + newValue;
-            if (newCoins < 0) Coins = 0;
-            else Coins = (uint)newCoins;
-        }
+        int newCoins = (int)Coins + newValue;
+        if (newCoins < 0) Coins = 0;
+        else Coins = (uint)newCoins;
         _coinText.text = Coins.ToString();
     }
 
-    private void Update() => PickupCollectibles();
+    private void Update()
+    {
+        PickupCollectibles();
+
+        if (Input.GetKeyDown(KeyCode.Alpha0)) UpdateCoins(100);
+        if (Input.GetKeyDown(KeyCode.Alpha9)) { _snakeHand.EndPowerup(0); _snakeHand.EndPowerup(1); }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("Collision entered");
-
         // collision.collider is the INCOMING collider
         // collision.otherCollider is OUR collider
         if (collision.gameObject.layer == _playerLayer && collision.collider.GetType() == typeof(EdgeCollider2D))
         {
-            Debug.Log("Colliding with player edge");
+            // increase other player's kill count
+            collision.gameObject.GetComponent<Snake>()._snakeKills++;
+
             Respawn();
         }
     }

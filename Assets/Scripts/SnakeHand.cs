@@ -13,6 +13,8 @@ public class SnakeHand : MonoBehaviour
 
     [SerializeField] private GameObject[] _powerupGameObjects;
 
+    [SerializeField] private GameObject _clonePrefab;
+
     [HideInInspector] public KeyCode MainPowerupKey;
     [HideInInspector] public KeyCode MainPowerupAlt;
     [HideInInspector] public KeyCode WeakPowerupKey;
@@ -31,11 +33,17 @@ public class SnakeHand : MonoBehaviour
     [HideInInspector] public uint _mainSlot = 0;
     [HideInInspector] public uint _weakSlot = 1;
 
-    // variables for powerups
-    private Camera[] _allCams;
-
     void Start()
     {
+        // DELETE YHIS
+        int aangle = UnityEngine.Random.Range(1, 360);
+        float ddx = 1 * Mathf.Sin(aangle);
+        float ddy = 1 * Mathf.Cos(aangle);
+
+        Debug.Log(aangle.ToString() + "*, x:" + ddx.ToString() + " y:" + ddy.ToString());
+
+
+
         _snake = GetComponent<Snake>();
         _snakeMovement = GetComponent<SnakeMovement>();
         _snakeBody = GetComponent<SnakeBody>();
@@ -50,9 +58,8 @@ public class SnakeHand : MonoBehaviour
             //"CloneGrenade",   /* NPC clones get shot into random directions */
             "Confusion",     /* Enemy player's controls are inverted */
             "Blackout",      /* All enemy screens are deactivated  */
-            //"SelfKill",      /* Nearby players will die when running into themselves (body reset for affected players upon activation) */
-            "Freeze"            /* Nearby enemy players freeze */
-            //"FreeMove",      /* Player no longer abides by snake movement laws */
+            "Freeze",            /* Nearby enemy players freeze */
+            "FreeMove"      /* Player no longer abides by snake movement laws */
             //"LongTail",      /* Body doesn't get destroyed */
         };
         
@@ -72,9 +79,6 @@ public class SnakeHand : MonoBehaviour
 
         _powerupGameObjects[_mainSlot].gameObject.SetActive(false);
         _powerupGameObjects[_weakSlot].gameObject.SetActive(false);
-
-        // setting powerup variables
-        _allCams = Camera.allCameras;
     }
 
     private void SetPowerup(uint slot)
@@ -84,6 +88,8 @@ public class SnakeHand : MonoBehaviour
 
     private void UsePowerup(Powerup powerup, uint slot)
     {
+        _snake._powerupsUsed++;
+
         int coinSubtraction = (10 - ((int)slot * 5));
         _snake.UpdateCoins(-coinSubtraction);
 
@@ -156,7 +162,18 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        Debug.Log("Player " + _snake.PlayerID.ToString() + " used " + powerupName);
+
+                        int splinters = UnityEngine.Random.Range(3, 5);
+                        for (int i = 0; i < splinters; i++)
+                        {
+                            GameObject newClone = Instantiate(_clonePrefab);
+
+                            int angle = UnityEngine.Random.Range(1, 360);
+                            float dx = SnakeManager.MoveSpeed * Mathf.Cos(angle);
+                            float dy = SnakeManager.MoveSpeed * Mathf.Sin(angle);
+                            newClone.GetComponent<CloneMovement>().SpawnVelocity = new Vector2(dx, dy);
+                        }
                     };
 
                     tickBehaviour = delegate ()
@@ -297,7 +314,7 @@ public class SnakeHand : MonoBehaviour
                         {
                             if (SnakeManager.Snakes[i] != gameObject)
                             {
-                                SnakeManager.Snakes[i].GetComponentInChildren<Camera>().enabled = false;
+                                SnakeManager.Snakes[i].GetComponentInChildren<Canvas>().enabled = true;
                             }
                         }
                     };
@@ -313,7 +330,7 @@ public class SnakeHand : MonoBehaviour
                         {
                             if (SnakeManager.Snakes[i] != gameObject)
                             {
-                                SnakeManager.Snakes[i].GetComponentInChildren<Camera>().enabled = true;
+                                SnakeManager.Snakes[i].GetComponentInChildren<Canvas>().enabled = false;
                             }
                         }
                     };
