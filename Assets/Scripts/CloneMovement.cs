@@ -10,23 +10,19 @@ public class CloneMovement : MonoBehaviour
 
     private Rigidbody2D _rigidbody;
 
-    private float _moveCooldown;
-    public bool Frozen = false;
-
 
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
 
         MoveSpeed = SnakeManager.MoveSpeed;
-        _moveCooldown = SnakeManager.MoveCooldown;
 
         Movement = SpawnVelocity;
     }
 
     private void FixedUpdate()
     {
-        if (!Frozen) _rigidbody.MovePosition(_rigidbody.position + Movement * MoveSpeed * Time.fixedDeltaTime);
+        _rigidbody.MovePosition(_rigidbody.position + Movement * MoveSpeed * Time.fixedDeltaTime);
 
         if (transform.position.x < GameManager.Instance.MinimumPositionX || transform.position.x > GameManager.Instance.MaximumPositionX || transform.position.y < GameManager.Instance.MinimumPositionY || transform.position.y > GameManager.Instance.MaximumPositionY)
         {

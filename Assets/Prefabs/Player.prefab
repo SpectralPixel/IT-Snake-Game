@@ -101,7 +101,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &246963761985685746
 RectTransform:
   m_ObjectHideFlags: 0
@@ -161,6 +161,90 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2655725359777185814
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7245539028704087052}
+  - component: {fileID: 5819894833459905850}
+  m_Layer: 9
+  m_Name: Crown
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7245539028704087052
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2655725359777185814}
+  m_LocalRotation: {x: 0, y: 0, z: -0.17579621, w: 0.9844266}
+  m_LocalPosition: {x: 0.192, y: 0.526, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4722129490895198029}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -20.25}
+--- !u!212 &5819894833459905850
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2655725359777185814}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 8
+  m_Sprite: {fileID: 21300000, guid: 1daa09dc1ecce9a4f9d15fc76cf6fe92, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
 --- !u!1 &4722129490734343210
 GameObject:
   m_ObjectHideFlags: 0
@@ -213,10 +297,10 @@ Camera:
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.5
+    x: 0.5
+    y: 0
     width: 0.5
-    height: 0.5
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -314,6 +398,7 @@ Transform:
   - {fileID: 1152782628302095039}
   - {fileID: 6823637587082417852}
   - {fileID: 4914930354737548808}
+  - {fileID: 7245539028704087052}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -329,10 +414,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcb183749daa2334599d458afe1bcb2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerID: 2
-  PlayerCount: 3
+  PlayerID: 1
+  PlayerCount: 2
   Coins: 0
   PickupRadius: 0
+  WinConditions: 
 --- !u!114 &4722129490895198031
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -348,7 +434,8 @@ MonoBehaviour:
   SpawnVelocity: {x: 1, y: 0}
   Movement: {x: 0, y: 0}
   MoveSpeed: 0
-  _moveKeys: 690000006a0000006b0000006c000000
+  _moveKeys: 11010000140100001201000013010000
+  MoveCooldown: 0
   FreeMove: 0
   Frozen: 0
   Confused: 0
@@ -384,9 +471,9 @@ MonoBehaviour:
   - {fileID: 1997402923893786666}
   - {fileID: 5628915497842688172}
   _clonePrefab: {fileID: 0}
-  MainPowerupKey: 111
-  MainPowerupAlt: 111
-  WeakPowerupKey: 117
+  MainPowerupKey: 305
+  MainPowerupAlt: 307
+  WeakPowerupKey: 303
   Powerups: []
   WeakPowerups: []
   _mainSlot: 0

@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float _coinRepopulationRate;
 
     private int _snakeCount;
+    private int _snakeCountOnRoundStart;
 
     [HideInInspector] public float MinimumPositionX;
     [HideInInspector] public float MaximumPositionX;
@@ -33,56 +34,69 @@ public class GameManager : MonoBehaviour
     {
         DontDestroyOnLoad(this.gameObject);
 
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         Instance = this;
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void Start()
     {
-        _snakeCount = SnakeManager.SnakeCount;
-
-        _pointRepopulationRate = 1 / (_pointRepopulationRate - (_pointRepopulationRate * 3/4) + (_pointRepopulationRate / 4) * _snakeCount);
-        _coinRepopulationRate = 1 / (_coinRepopulationRate - (_coinRepopulationRate * 3/4) + (_coinRepopulationRate / 4) * _snakeCount);
-
-        StartCoroutine(UpdateGameState(GameState.Menu));
+        UpdateGameState(GameState.Menu);
     }
 
-    public IEnumerator UpdateGameState(GameState newState)
+    public void UpdateGameState(GameState newState)
     {
-        State = newState;
-
-        CancelInvoke("SpawnNewPoint");
-        CancelInvoke("SpawnNewCoin");
-
-        switch (newState)
+        if (State != newState)
         {
-            case GameState.Menu:
-                if (SceneManager.GetActiveScene().name != "Main Menu") SceneManager.LoadScene("Assets/Scenes/Main Menu.unity");
-                break;
-            case GameState.Round:
-                int _snakes = (int)GameObject.Find("/Canvas/Player Count").GetComponent<Slider>().value;
-                Debug.Log(_snakes);
+            State = newState;
 
-                SceneManager.LoadScene("Assets/Scenes/Game.unity");
+            CancelInvoke("SpawnNewPoint");
+            CancelInvoke("SpawnNewCoin");
 
-                while (SceneManager.GetActiveScene().name != "Game")
-                {
-                    yield return null;
-                }
+            switch (newState)
+            {
+                case GameState.Menu:
+                    SceneManager.LoadScene("Assets/Scenes/Main Menu.unity");
+                    break;
+                case GameState.Round:
+                    _snakeCountOnRoundStart = (int)GameObject.Find("/Canvas/Player Count").GetComponent<Slider>().value;
+                    SceneManager.LoadScene("Assets/Scenes/Game.unity");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+            }
 
-                NewRoundHandler();
-                SnakeManager.Instance.GameStart(_snakes);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
+            OnGameStateChanged?.Invoke(newState);
         }
+    }
 
-        OnGameStateChanged?.Invoke(newState);
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Main Menu")
+        {
 
-        yield return null;
+        }
+        else if (scene.name == "Game")
+        {
+            NewRoundHandler();
+            SnakeManager.Instance.GameStart(_snakeCountOnRoundStart);
+            GameObject.Find("Foreground").GetComponent<GameTimer>().StartRound();
+        }
     }
 
     private void NewRoundHandler()
     {
+        _snakeCount = SnakeManager.SnakeCount;
+
+        _pointRepopulationRate = 1 / (_pointRepopulationRate - (_pointRepopulationRate * 3 / 4) + (_pointRepopulationRate / 4) * _snakeCount);
+        _coinRepopulationRate = 1 / (_coinRepopulationRate - (_coinRepopulationRate * 3 / 4) + (_coinRepopulationRate / 4) * _snakeCount);
+
         for (int i = 0; i < 4; i++)
         {
             GameObject wall = new GameObject("Wall " + i, typeof(BoxCollider2D));
@@ -126,8 +140,6 @@ public class GameManager : MonoBehaviour
 
         InvokeRepeating("SpawnNewPoint", 0f, _pointRepopulationRate);
         InvokeRepeating("SpawnNewCoin", 10f, _coinRepopulationRate / 10);
-
-        GameObject.Find("Foreground").GetComponent<GameTimer>().StartRound();
     }
 
     private void SpawnNewPoint()
@@ -183,7 +195,22 @@ public class GameManager : MonoBehaviour
 
     public void StartGameButton()
     { 
-        StartCoroutine(UpdateGameState(GameState.Round)); 
+        UpdateGameState(GameState.Round); 
+    }
+
+    private void Update()
+    {
+        if (State == GameState.Round)
+        {
+            if (Input.GetKeyDown(KeyCode.Keypad7)) // End Round
+            {
+                GameObject.Find("Foreground").GetComponent<GameTimer>().GameTime = 1f;
+            }
+            if (Input.GetKeyDown(KeyCode.Keypad8)) // Reroll Items
+            {
+                SnakeManager.Instance.RerollAllHands();
+            }
+        }
     }
 
 }

@@ -33,36 +33,8 @@ public class SnakeHand : MonoBehaviour
     [HideInInspector] public uint _mainSlot = 0;
     [HideInInspector] public uint _weakSlot = 1;
 
-    void Start()
+    private void Awake()
     {
-        // DELETE YHIS
-        int aangle = UnityEngine.Random.Range(1, 360);
-        float ddx = 1 * Mathf.Sin(aangle);
-        float ddy = 1 * Mathf.Cos(aangle);
-
-        Debug.Log(aangle.ToString() + "*, x:" + ddx.ToString() + " y:" + ddy.ToString());
-
-
-
-        _snake = GetComponent<Snake>();
-        _snakeMovement = GetComponent<SnakeMovement>();
-        _snakeBody = GetComponent<SnakeBody>();
-
-        _powerupSprites = SnakeManager.PowerupSprites;
-        _weakPowerupSprites = SnakeManager.WeakPowerupSprites;
-
-        Powerups = new string[]
-        {
-            "None",          /* Basically null */
-            "Speed",         /* Player go brrrr */
-            //"CloneGrenade",   /* NPC clones get shot into random directions */
-            "Confusion",     /* Enemy player's controls are inverted */
-            "Blackout",      /* All enemy screens are deactivated  */
-            "Freeze",            /* Nearby enemy players freeze */
-            "FreeMove"      /* Player no longer abides by snake movement laws */
-            //"LongTail",      /* Body doesn't get destroyed */
-        };
-        
         WeakPowerups = new string[4]
         {
             "None",          /* Basically null */
@@ -72,6 +44,28 @@ public class SnakeHand : MonoBehaviour
             "FarView",       /* Player view gets expanded */
             //"Teleport"      /* Teleport to nearby player (auto body reset) */
         };
+
+        Powerups = new string[7]
+        {
+            "None",          /* Basically null */
+            "Speed",         /* Player go brrrr */
+            "CloneGrenade",   /* NPC clones get shot into random directions */
+            "Confusion",     /* Enemy player's controls are inverted */
+            "Blackout",      /* All enemy screens are deactivated  */
+            "Freeze",            /* Nearby enemy players freeze */
+            "FreeMove",      /* Player no longer abides by snake movement laws */
+            //"LongTail",      /* Body doesn't get destroyed */
+        };
+    }
+
+    void Start()
+    {
+        _snake = GetComponent<Snake>();
+        _snakeMovement = GetComponent<SnakeMovement>();
+        _snakeBody = GetComponent<SnakeBody>();
+
+        _powerupSprites = SnakeManager.PowerupSprites;
+        _weakPowerupSprites = SnakeManager.WeakPowerupSprites;
 
         _playerHand = new Powerup[_powerupGameObjects.Length];
         SetPowerup(_mainSlot);
@@ -88,7 +82,7 @@ public class SnakeHand : MonoBehaviour
 
     private void UsePowerup(Powerup powerup, uint slot)
     {
-        _snake._powerupsUsed++;
+        _snake.WinConditions[3]++;
 
         int coinSubtraction = (10 - ((int)slot * 5));
         _snake.UpdateCoins(-coinSubtraction);
@@ -99,16 +93,6 @@ public class SnakeHand : MonoBehaviour
     public void EndPowerup(uint slot)
     {
         SetPowerup(slot);
-        ///////////////////////////////////////////////////// only do this if the powerup was speed!!!
-        /*_snakeMovement.MoveSpeed = SnakeManager.MoveSpeed;
-
-        for (int i = 0; i < _allCams.Length; i++)
-        {
-            _allCams[i].gameObject.SetActive(true);
-        }
-
-        SetPowerup(slot);
-        */
     }
 
     private Powerup GetRandomPowerup(bool weak = false) // https://dirask.com/posts/C-NET-get-random-element-from-enum-X13Qrp
@@ -120,7 +104,8 @@ public class SnakeHand : MonoBehaviour
         PowerupBehaviour tickBehaviour;
         PowerupBehaviour endBehaviour;
 
-        // get a random item in the powerups list, skipping "None"
+        // DLELETE MEeEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+        powerupName = null;
         if (weak)
         {
             powerupName = WeakPowerups[UnityEngine.Random.Range(1, WeakPowerups.Length)];
@@ -128,8 +113,18 @@ public class SnakeHand : MonoBehaviour
         }
         else
         {
-            powerupName = Powerups[UnityEngine.Random.Range(1, Powerups.Length)];
-            Debug.Log(powerupName.ToString() + ", " + Powerups.Length.ToString());
+            int randnum = UnityEngine.Random.Range(1, Powerups.Length);
+            string powlen = Powerups.Length.ToString();
+            string randnumtxt = randnum.ToString();
+            try
+            {
+                powerupName = Powerups[randnum];
+                Debug.Log(powerupName.ToString() + ", " + Powerups.Length.ToString());
+            }
+            catch
+            {
+                Debug.Log(powlen + "-" + randnumtxt);
+            }
         }
 
         if (!weak)
@@ -140,13 +135,12 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
                         _snakeMovement.MoveSpeed *= 2;
                     };
 
                     tickBehaviour = delegate ()
                     {
-
+                        _snakeMovement.MoveCooldown = 0;
                     };
 
                     endBehaviour = delegate ()
@@ -162,14 +156,13 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + " used " + powerupName);
 
                         int splinters = UnityEngine.Random.Range(3, 5);
                         for (int i = 0; i < splinters; i++)
                         {
                             GameObject newClone = Instantiate(_clonePrefab);
 
-                            int angle = UnityEngine.Random.Range(1, 360);
+                            float angle = UnityEngine.Random.Range(1, 360) * (Mathf.PI / 180);
                             float dx = SnakeManager.MoveSpeed * Mathf.Cos(angle);
                             float dy = SnakeManager.MoveSpeed * Mathf.Sin(angle);
                             newClone.GetComponent<CloneMovement>().SpawnVelocity = new Vector2(dx, dy);
@@ -194,7 +187,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
                         _snakeMovement.FreeMove = true;
                     };
 
@@ -216,8 +208,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
-
                         for (int i = 0; i < SnakeManager.SnakeCount; i++)
                         {
                             if (SnakeManager.Snakes[i] != gameObject)
@@ -251,7 +241,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
                         _snakeBody.InfiniteLength = true;
                     };
 
@@ -273,8 +262,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
-
                         for (int i = 0; i < SnakeManager.SnakeCount; i++)
                         {
                             if (SnakeManager.Snakes[i] != gameObject)
@@ -308,8 +295,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
-
                         for (int i = 0; i < SnakeManager.SnakeCount; i++)
                         {
                             if (SnakeManager.Snakes[i] != gameObject)
@@ -343,7 +328,7 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
                     };
 
                     tickBehaviour = delegate ()
@@ -378,7 +363,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
                         _snake.PickupRadius *= 4;
                     };
 
@@ -400,9 +384,8 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+                        _snakeBody.SnakePositions.Clear();
                     };
-                    _snakeBody.SnakePositions.Clear();
 
                     tickBehaviour = delegate ()
                     {
@@ -422,7 +405,7 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
                     };
 
                     tickBehaviour = delegate ()
@@ -443,7 +426,6 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
                         GetComponentInChildren<CinemachineVirtualCamera>().m_Lens.OrthographicSize *= 2;
                     };
 
@@ -465,7 +447,7 @@ public class SnakeHand : MonoBehaviour
 
                     startBehaviour = delegate ()
                     {
-                        Debug.Log("Player " + _snake.PlayerID.ToString() + "used" + powerupName);
+
                     };
 
                     tickBehaviour = delegate ()

@@ -37,6 +37,12 @@ public class SnakeManager : MonoBehaviour
     {
         DontDestroyOnLoad(this.gameObject);
 
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         Instance = this;
     }
 
@@ -149,6 +155,15 @@ public class SnakeManager : MonoBehaviour
     public void SliderChanged(int playerCount)
     {
         SnakeCount = playerCount;
+    }
+
+    public void RerollAllHands()
+    {
+        for (int i = 0; i < Snakes.Length; i++)
+        {
+            Snakes[i].GetComponent<SnakeHand>().EndPowerup(0);
+            Snakes[i].GetComponent<SnakeHand>().EndPowerup(1);
+        }
     }
 
 }

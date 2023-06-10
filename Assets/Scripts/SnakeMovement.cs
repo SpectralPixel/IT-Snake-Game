@@ -16,7 +16,7 @@ public class SnakeMovement : MonoBehaviour
 
     private Rigidbody2D _rigidbody;
 
-    private float _moveCooldown;
+    public float MoveCooldown;
     private TimeSpan _moveCooldownTimeSpan;
     private DateTime _lastMove;
     private Vector2 _nextMove;
@@ -35,10 +35,10 @@ public class SnakeMovement : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
 
         MoveSpeed = SnakeManager.MoveSpeed;
-        _moveCooldown = SnakeManager.MoveCooldown;
+        MoveCooldown = SnakeManager.MoveCooldown;
 
         Movement = SpawnVelocity;
-        _moveCooldownTimeSpan = TimeSpan.FromSeconds(_moveCooldown);
+        _moveCooldownTimeSpan = TimeSpan.FromSeconds(MoveCooldown);
     }
 
     private void ChangePlayerDirection(Vector2 movement)

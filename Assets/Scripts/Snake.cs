@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using Cinemachine;
 using UnityEngine.UIElements;
+using System.Collections;
 
 public class Snake : MonoBehaviour
 {
@@ -21,12 +22,14 @@ public class Snake : MonoBehaviour
     private int _playerLayer;
     private float GrowthProgress;
 
-    [HideInInspector] public int _pointsCollected;
-    [HideInInspector] public int _coinsCollected;
-    [HideInInspector] public int _snakeKills;
-    [HideInInspector] public int _powerupsUsed;
+    // WIN CONDITION 0: POINTS COLLECTED
+    // WIN CONDITION 1: COINS COLLECTED
+    // WIN CONDITION 2: VANQUISHES
+    // WIN CONDITION 3: PWRUPS USED
+    // WIN CONDITION 4: LONGEST SNAKE
+    [HideInInspector] public int[] WinConditions;
 
-    private void Start()
+    private IEnumerator Start()
     {
         _snakeMovement = GetComponent<SnakeMovement>();
         _snakeBody = GetComponent<SnakeBody>();
@@ -37,20 +40,23 @@ public class Snake : MonoBehaviour
         _collectibleLayerMask = SnakeManager.CollectibleLayerMask;
         _playerLayer = SnakeManager.PlayerLayer;
 
+        WinConditions = new int[5];
+
+        yield return new WaitForSeconds(1f);
+
         Respawn();
     }
 
     public void Respawn()
     {
+        GameObject.Find("LOADING").SetActive(false);
+
         Camera cam = GetComponentInChildren<Camera>();
         cam.cullingMask &= ~(1 << cam.gameObject.layer); // TURN OFF THIS LAYER     http://answers.unity.com/answers/353137/view.html
         cam.gameObject.layer += PlayerID;
         cam.cullingMask |= 1 << (cam.gameObject.layer); // TURN ON THIS LAYER
         
         _snakeBody.SnakePositions.Clear();
-
-        _snakeHand.EndPowerup(_snakeHand._mainSlot);
-        _snakeHand.EndPowerup(_snakeHand._weakSlot);
 
         Vector3 snakeRespawnPosition = Vector3.zero;
         switch (PlayerID)
@@ -93,6 +99,9 @@ public class Snake : MonoBehaviour
 
         _snakeMovement.MoveSpeed = SnakeManager.MoveSpeed;
         _snakeMovement.Movement = _snakeMovement.SpawnVelocity;
+
+        _snakeHand.EndPowerup(_snakeHand._mainSlot);
+        _snakeHand.EndPowerup(_snakeHand._weakSlot);
     }
 
     private void PickupCollectibles()
@@ -104,14 +113,18 @@ public class Snake : MonoBehaviour
         {
             if (collider != null)
             {
-                Debug.Log("Collectible within pickup radius");
                 switch (collider.gameObject.tag)
                 {
                     case "Point":
-                        _pointsCollected++;
+                        WinConditions[0]++;
 
                         GrowthProgress += 1f / _snakeBody.PointsToGrow;
-                        if (GrowthProgress >= 1f) { GrowthProgress = 0f; _snakeBody.SnakeLength++; }
+                        if (GrowthProgress >= 1f)
+                        {
+                            GrowthProgress = 0f;
+                            _snakeBody.SnakeLength++;
+                            WinConditions[4] = (int)_snakeBody.SnakeLength;
+                        }
 
                         Destroy(collider.gameObject);
                         GameManager.Instance.PointCount--;
@@ -119,7 +132,7 @@ public class Snake : MonoBehaviour
                         break;
 
                     case "Coin":
-                        _coinsCollected++;
+                        WinConditions[1]++;
 
                         UpdateCoins(1);
 
@@ -156,7 +169,7 @@ public class Snake : MonoBehaviour
         if (collision.gameObject.layer == _playerLayer && collision.collider.GetType() == typeof(EdgeCollider2D))
         {
             // increase other player's kill count
-            collision.gameObject.GetComponent<Snake>()._snakeKills++;
+            collision.gameObject.GetComponent<Snake>().WinConditions[2]++;
 
             Respawn();
         }
