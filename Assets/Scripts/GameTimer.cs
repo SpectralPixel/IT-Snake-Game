@@ -13,19 +13,21 @@ public class GameTimer : MonoBehaviour
     [SerializeField] private float _objectiveRelPos;
 
     [HideInInspector] public int WinCondition;
+    [HideInInspector] public int LeadingSnakeID;
     private Snake _leader;
 
     private Snake[] _snakes;
 
     public void StartRound()
     {
-        GameTime = 120f;
-        WinCondition = Random.Range(0, 3);
+        GameTime = Random.Range(120, 240);
+        WinCondition = Random.Range(0, 5);
 
         if (WinCondition == 0) _winConditionObj.text = "Person with the most points collected wins!";
         if (WinCondition == 1) _winConditionObj.text = "Person with the most coins collected wins!";
         if (WinCondition == 2) _winConditionObj.text = "Person with the most vanquishes wins!";
         if (WinCondition == 3) _winConditionObj.text = "Person with the most powerups used wins!";
+        if (WinCondition == 4) _winConditionObj.text = "Person with the longest snake wins!";
 
         _timerObj.gameObject.SetActive(true);
         _winConditionObj.gameObject.SetActive(true);
@@ -42,20 +44,40 @@ public class GameTimer : MonoBehaviour
             _snakes[i] = SnakeManager.Snakes[i].GetComponent<Snake>();
         }
         _leader = _snakes[0];
-
-        InvokeRepeating("CheckForLeader", 0f, 0.2f);
     }
 
     void FixedUpdate()
     {
-        GameTime -= Time.fixedDeltaTime;
-
-        if (GameTime < 0 && GameManager.Instance.State == GameState.Round)
+        if (SnakeManager.GameLoaded)
         {
-            GameManager.Instance.UpdateGameState(GameState.Menu);
-        }
+            GameTime -= Time.fixedDeltaTime;
 
-        _timerObj.text = Mathf.CeilToInt(GameTime).ToString();
+            if (GameTime < 0 && GameManager.Instance.State == GameState.Round)
+            {
+                GameManager.Instance.UpdateGameState(GameState.Menu);
+            }
+
+            _timerObj.text = Mathf.CeilToInt(GameTime).ToString();
+
+
+            CheckForLeader();
+
+            if (GameTime < 10)
+            {
+                _timerObj.color = Color.red;
+                _winConditionObj.color = Color.red;
+            }
+            else if (GameTime < 30)
+            {
+                _timerObj.color = Color.yellow;
+                _winConditionObj.color = Color.yellow;
+            }
+            else
+            {
+                _timerObj.color = Color.white;
+                _winConditionObj.color = Color.white;
+            }
+        }
     }
 
     private void CheckForLeader()
@@ -74,5 +96,6 @@ public class GameTimer : MonoBehaviour
         }
 
         _leader.gameObject.transform.Find("Crown").gameObject.SetActive(true);
+        SnakeManager.LeadingPlayerID = _leader.GetComponent<Snake>().PlayerID;
     }
 }

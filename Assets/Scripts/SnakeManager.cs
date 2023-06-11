@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SnakeManager : MonoBehaviour
 {
@@ -17,6 +20,10 @@ public class SnakeManager : MonoBehaviour
     public static int PlayerLayer;
     public static Sprite[] PowerupSprites;
     public static Sprite[] WeakPowerupSprites;
+    public static Sprite[] ActiveSnakeSkins;
+    public static int LeadingPlayerID = 10;
+
+    public static bool GameLoaded = false;
 
     [SerializeField] private uint _defaultSnakeLength;
     [SerializeField] private float _defaultMoveSpeed;
@@ -30,6 +37,7 @@ public class SnakeManager : MonoBehaviour
     [Space]
     [SerializeField] private Sprite[] _powerupSprites;
     [SerializeField] private Sprite[] _weakPowerupSprites;
+    [SerializeField] private List<Sprite> _snakeSkins;
 
     [SerializeField] private GameObject _snakePrefab;
 
@@ -44,6 +52,14 @@ public class SnakeManager : MonoBehaviour
         }
 
         Instance = this;
+
+        ActiveSnakeSkins = new Sprite[4];
+        for (int i = 0; i < ActiveSnakeSkins.Length; i++)
+        {
+            int randnum = Random.Range(0, _snakeSkins.Count);
+            ActiveSnakeSkins[i] = _snakeSkins[randnum];
+            _snakeSkins.RemoveAt(randnum);
+        }
     }
 
     public void GameStart(int playerCount)
@@ -149,20 +165,6 @@ public class SnakeManager : MonoBehaviour
             }
 
             Snakes[i] = Instantiate(snake, snakePosition, Quaternion.identity);
-        }
-    }
-
-    public void SliderChanged(int playerCount)
-    {
-        SnakeCount = playerCount;
-    }
-
-    public void RerollAllHands()
-    {
-        for (int i = 0; i < Snakes.Length; i++)
-        {
-            Snakes[i].GetComponent<SnakeHand>().EndPowerup(0);
-            Snakes[i].GetComponent<SnakeHand>().EndPowerup(1);
         }
     }
 

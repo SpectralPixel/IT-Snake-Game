@@ -35,14 +35,14 @@ public class SnakeHand : MonoBehaviour
 
     private void Awake()
     {
-        WeakPowerups = new string[4]
+        WeakPowerups = new string[5]
         {
             "None",          /* Basically null */
             "Magnet",        /* Increases pickup range */
             "TailReset",     /* Resets tail and cures debuffs */
             //"Hax"            /* Draws a line towards all coins and players */
             "FarView",       /* Player view gets expanded */
-            //"Teleport"      /* Teleport to nearby player (auto body reset) */
+            "Teleport"      /* Teleport to nearby player (auto body reset) */
         };
 
         Powerups = new string[7]
@@ -104,27 +104,15 @@ public class SnakeHand : MonoBehaviour
         PowerupBehaviour tickBehaviour;
         PowerupBehaviour endBehaviour;
 
-        // DLELETE MEeEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-        powerupName = null;
         if (weak)
         {
             powerupName = WeakPowerups[UnityEngine.Random.Range(1, WeakPowerups.Length)];
-            Debug.Log(powerupName.ToString() + ", " + WeakPowerups.Length.ToString());
         }
         else
         {
             int randnum = UnityEngine.Random.Range(1, Powerups.Length);
-            string powlen = Powerups.Length.ToString();
-            string randnumtxt = randnum.ToString();
-            try
-            {
-                powerupName = Powerups[randnum];
-                Debug.Log(powerupName.ToString() + ", " + Powerups.Length.ToString());
-            }
-            catch
-            {
-                Debug.Log(powlen + "-" + randnumtxt);
-            }
+            powerupName = Powerups[randnum];
+            if (powerupName == "CloneGrenade") Debug.Log(powerupName);
         }
 
         if (!weak)
@@ -161,11 +149,13 @@ public class SnakeHand : MonoBehaviour
                         for (int i = 0; i < splinters; i++)
                         {
                             GameObject newClone = Instantiate(_clonePrefab);
+                            newClone.tag = _snake.PlayerID.ToString();
 
                             float angle = UnityEngine.Random.Range(1, 360) * (Mathf.PI / 180);
                             float dx = SnakeManager.MoveSpeed * Mathf.Cos(angle);
                             float dy = SnakeManager.MoveSpeed * Mathf.Sin(angle);
-                            newClone.GetComponent<CloneMovement>().SpawnVelocity = new Vector2(dx, dy);
+                            newClone.GetComponent<CloneMovement>().SetVelocity(new Vector2(dx, dy));
+                            newClone.GetComponent<CloneBody>().SetAppearance(_snakeBody._SpriteRenderer.sprite, _snakeBody._SpriteRenderer.color, _snakeBody._LineRenderer.colorGradient);
                         }
                     };
 
@@ -511,9 +501,9 @@ public class SnakeHand : MonoBehaviour
         powerupGameObjects[1].transform.position = secondaryPowerupPosition;
 
         if (_snake.Coins >= 5)  _powerupGameObjects[_weakSlot].gameObject.SetActive(true);
-        else              _powerupGameObjects[_weakSlot].gameObject.SetActive(false);
+        else                    _powerupGameObjects[_weakSlot].gameObject.SetActive(false);
         if (_snake.Coins >= 10) _powerupGameObjects[_mainSlot].gameObject.SetActive(true);
-        else              _powerupGameObjects[_mainSlot].gameObject.SetActive(false);
+        else                    _powerupGameObjects[_mainSlot].gameObject.SetActive(false);
 
         for (int i = 0; i < powerupGameObjects.Length; i++)
         {

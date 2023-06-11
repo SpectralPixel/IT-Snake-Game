@@ -17,7 +17,6 @@ public class Snake : MonoBehaviour
     [HideInInspector] public uint Coins;
     [HideInInspector] public float PickupRadius;
 
-    private TextMeshPro _coinText;
     private LayerMask _collectibleLayerMask;
     private int _playerLayer;
     private float GrowthProgress;
@@ -35,21 +34,27 @@ public class Snake : MonoBehaviour
         _snakeBody = GetComponent<SnakeBody>();
         _snakeHand = GetComponent<SnakeHand>();
 
-        _coinText = GetComponentInChildren<TextMeshPro>();
-
         _collectibleLayerMask = SnakeManager.CollectibleLayerMask;
         _playerLayer = SnakeManager.PlayerLayer;
 
         WinConditions = new int[5];
 
-        yield return new WaitForSeconds(1f);
+        gameObject.GetComponent<SpriteRenderer>().sprite = SnakeManager.ActiveSnakeSkins[PlayerID];
+
+        yield return new WaitForSeconds(0.1f);
 
         Respawn();
+        SnakeManager.GameLoaded = true;
     }
 
     public void Respawn()
     {
-        GameObject.Find("LOADING").SetActive(false);
+        try
+        {
+            GameObject.Find("LOADING").SetActive(false);
+        }
+        catch { }
+        
 
         Camera cam = GetComponentInChildren<Camera>();
         cam.cullingMask &= ~(1 << cam.gameObject.layer); // TURN OFF THIS LAYER     http://answers.unity.com/answers/353137/view.html
@@ -151,27 +156,30 @@ public class Snake : MonoBehaviour
         int newCoins = (int)Coins + newValue;
         if (newCoins < 0) Coins = 0;
         else Coins = (uint)newCoins;
-        _coinText.text = Coins.ToString();
     }
 
     private void Update()
     {
         PickupCollectibles();
 
-        if (Input.GetKeyDown(KeyCode.Alpha0)) UpdateCoins(100);
-        if (Input.GetKeyDown(KeyCode.Alpha9)) { _snakeHand.EndPowerup(0); _snakeHand.EndPowerup(1); }
+        // CHEATS
+        if (Input.GetKeyDown(KeyCode.Keypad9)) UpdateCoins(100);
+        if (Input.GetKeyDown(KeyCode.Keypad8)) { _snakeHand.EndPowerup(0); _snakeHand.EndPowerup(1); }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // collision.collider is the INCOMING collider
-        // collision.otherCollider is OUR collider
-        if (collision.gameObject.layer == _playerLayer && collision.collider.GetType() == typeof(EdgeCollider2D))
+        if (SnakeManager.GameLoaded)
         {
-            // increase other player's kill count
-            collision.gameObject.GetComponent<Snake>().WinConditions[2]++;
+            // collision.collider is the INCOMING collider
+            // collision.otherCollider is OUR collider
+            if (collision.gameObject.layer == _playerLayer && collision.collider.GetType() == typeof(EdgeCollider2D) && collision.gameObject.tag != PlayerID.ToString())
+            {
+                // increase other player's kill count
+                collision.gameObject.GetComponent<Snake>().WinConditions[2]++;
 
-            Respawn();
+                Respawn();
+            }
         }
     }
 }

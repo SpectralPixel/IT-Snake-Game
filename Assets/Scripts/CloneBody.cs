@@ -14,10 +14,7 @@ public class CloneBody : MonoBehaviour
     private LineRenderer _lineRenderer;
 
     [HideInInspector] public List<Vector3> SnakePositions;
-    [HideInInspector] public uint PointsToGrow;
     [HideInInspector] public uint SnakeLength;
-
-    public bool InfiniteLength = false;
 
     private void Start()
     {
@@ -26,13 +23,17 @@ public class CloneBody : MonoBehaviour
         _lineRenderer = GetComponent<LineRenderer>();
 
         SnakeLength = SnakeManager.DefaultSnakeLength;
-        PointsToGrow = SnakeManager.PointsToGrow;
-
-        //SetPlayerColor();
 
         SnakePositions = new List<Vector3>();
 
         InvokeRepeating("CreateBody", 0f, 0.2f);
+    }
+
+    public void SetAppearance(Sprite sprite, Color color, Gradient gradient)
+    {
+        _spriteRenderer.sprite = sprite;
+        _spriteRenderer.color = color;
+        _lineRenderer.colorGradient = gradient;
     }
 
     private void Update()
@@ -53,7 +54,7 @@ public class CloneBody : MonoBehaviour
     {
         SnakePositions.Add(new Vector3(transform.position.x, transform.position.y, 0f));
 
-        while (SnakePositions.Count > SnakeLength && !InfiniteLength)
+        while (SnakePositions.Count > SnakeLength)
         {
             SnakePositions.RemoveAt(0);
         }
@@ -70,38 +71,5 @@ public class CloneBody : MonoBehaviour
         }
 
         _edgeCollider.SetPoints(edges);
-    }
-
-    // RUN ON AWAKE
-    //private void SetPlayerColor()
-    //{
-    //    Color snakeStartColor = Color.HSVToRGB(_snake.PlayerID * (1f / _snake.PlayerCount), 1f, 1.0f, false);
-    //    Color snakeEndColor = Color.HSVToRGB(_snake.PlayerID * (1f / _snake.PlayerCount), 1f, 0.5f, false);
-    //    _spriteRenderer.color = snakeStartColor;
-    //    _lineRenderer.colorGradient = CreateSimpleGradient(snakeStartColor, snakeEndColor, true);
-    //}
-
-    private Gradient CreateSimpleGradient(Color startColor, Color endColor, bool inverse = false)
-    {
-        Gradient snakeBodyColor = new Gradient();
-        snakeBodyColor.SetKeys(
-            new GradientColorKey[]
-            {
-                new GradientColorKey(
-                    inverse ? endColor : startColor,
-                    0f
-                ),
-                new GradientColorKey(
-                    inverse ? startColor : endColor,
-                    1f
-                )
-            },
-            new GradientAlphaKey[]
-            {
-                new GradientAlphaKey(1f, 0f),
-                new GradientAlphaKey(1f, 1f)
-            }
-        );
-        return snakeBodyColor;
     }
 }

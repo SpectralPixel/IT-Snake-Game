@@ -9,7 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4722129490895198029}
-  - component: {fileID: 4243936674609704434}
+  - component: {fileID: 1422826198042307495}
+  - component: {fileID: 3039650528782268418}
   - component: {fileID: 4722129490895198028}
   - component: {fileID: 4722129490895198026}
   - component: {fileID: 4722129490895198027}
@@ -37,7 +38,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4243936674609704434
+--- !u!114 &1422826198042307495
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,9 +47,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 4722129490895198030}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c94f25ba0610fdd4a810528055a8d7a4, type: 3}
+  m_Script: {fileID: 11500000, guid: fd76a55d1ba002144adf90fa5cee0b1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SpawnVelocity: {x: 0, y: 0}
+  Movement: {x: 0, y: 0}
+  MoveSpeed: 0
+--- !u!114 &3039650528782268418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722129490895198030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da168fbed09b9a544a0066aae84fe403, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Host: {fileID: 0}
   SnakePositions: []
   PointsToGrow: 0
   SnakeLength: 0
@@ -94,7 +111,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 26adb195b45e63e44bf0c9de87ace7a3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

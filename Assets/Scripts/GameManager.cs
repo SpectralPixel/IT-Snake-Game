@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -84,8 +81,9 @@ public class GameManager : MonoBehaviour
         }
         else if (scene.name == "Game")
         {
-            NewRoundHandler();
+            GameObject.Find("LOADING").SetActive(true);
             SnakeManager.Instance.GameStart(_snakeCountOnRoundStart);
+            NewRoundHandler();
             GameObject.Find("Foreground").GetComponent<GameTimer>().StartRound();
         }
     }
@@ -206,10 +204,7 @@ public class GameManager : MonoBehaviour
             {
                 GameObject.Find("Foreground").GetComponent<GameTimer>().GameTime = 1f;
             }
-            if (Input.GetKeyDown(KeyCode.Keypad8)) // Reroll Items
-            {
-                SnakeManager.Instance.RerollAllHands();
-            }
+            // OTHER CHEATS CAN BE FOUND IN: SNAKE.CS
         }
     }
 
