@@ -92,6 +92,9 @@ public class GameManager : MonoBehaviour
     {
         _snakeCount = SnakeManager.SnakeCount;
 
+        PointCount = 0;
+        CoinCount = 0;
+
         _pointRepopulationRate = 1 / (_pointRepopulationRate - (_pointRepopulationRate * 3 / 4) + (_pointRepopulationRate / 4) * _snakeCount);
         _coinRepopulationRate = 1 / (_coinRepopulationRate - (_coinRepopulationRate * 3 / 4) + (_coinRepopulationRate / 4) * _snakeCount);
 
